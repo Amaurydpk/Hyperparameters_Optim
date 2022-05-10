@@ -13,7 +13,7 @@ def train(model, dataloader, fLoss, optimizer, device, nbEpochs):
         optimizer  -- A torch.optim.Optimzer object
         device     -- a torch.device class specifying the device used for computation
         nbEpochs   -- int for the number of loop over the dataset
-    Returns :
+    Returns : None
     """
     size = len(dataloader.dataset)
 
@@ -38,7 +38,6 @@ def train(model, dataloader, fLoss, optimizer, device, nbEpochs):
 
         scheduler.step()
         print(optimizer.state_dict()['param_groups'][0]['lr'])
-
         print('\n')
 
 
@@ -50,7 +49,7 @@ def test(model, dataloader, device):
         dataloader -- A torch.utils.data.DataLoader
         f_loss     -- The loss function, i.e. a loss Module
         device     -- The device to use for computation 
-    Returns :
+    Returns : None
     """
     correct, total = 0, 0  
     model.eval() # evaluation mode

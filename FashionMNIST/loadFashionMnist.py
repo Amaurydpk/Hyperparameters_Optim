@@ -43,7 +43,6 @@ train_dataset = DatasetTransformer(train_dataset, transforms.ToTensor())
 valid_dataset = DatasetTransformer(valid_dataset, transforms.ToTensor())
 test_dataset  = DatasetTransformer(test_dataset , transforms.ToTensor())
 
-
 ##### DATALOADERS #####
 
 trainLoader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True) # <-- this reshuffles the data at every epoch
@@ -63,7 +62,6 @@ def displayExamples(train_loader):
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
     plt.show()
-
 
 ### MAIN ###
 if __name__ == '__main__':

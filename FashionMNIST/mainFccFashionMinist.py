@@ -4,11 +4,13 @@ import torch.optim as optim
 from FccFashionMnist import FullyConnectedReLU, FullyConnectedSigmoid
 from loadFashionMnist import trainLoader, validLoader, testLoader
 from trainTestFashionMnist import train, test
-import optuna
 
 torch.manual_seed(19)
+
+### PARAMS ###
 INPUT_SIZE = 1*28*28
 NUM_CLASSES = 10
+EPOCHS = 5
 
 ### MAIN ###
 if __name__ == '__main__':
@@ -17,5 +19,5 @@ if __name__ == '__main__':
     model.to(device)
     fLoss = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters())
-    train(model, trainLoader, validLoader, fLoss, optimizer, device, nbEpochs=5)
+    train(model, trainLoader, validLoader, fLoss, optimizer, device, nbEpochs=EPOCHS)
     test(model, testLoader, device)

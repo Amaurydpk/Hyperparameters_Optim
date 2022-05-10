@@ -55,7 +55,7 @@ if __name__ == '__main__':
     study.optimize(objective, n_trials=2)
     bestTrial = study.best_trial
 
-    # Printing 
+    # Printing best parameters found
     for key, value in bestMetaHP.items():
         print("{}: {}".format(key, value))
     for key, value in bestTrial.params.items():

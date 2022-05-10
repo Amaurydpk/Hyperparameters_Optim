@@ -8,9 +8,7 @@ torch.manual_seed(19)
 
 # The output of torchvision datasets are PILImage images of range [0, 1]. 
 # We transform them to Tensors of normalized range [-1, 1]
-transform = transforms.Compose(
-    [transforms.ToTensor(), 
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
 batch_size = 4
 

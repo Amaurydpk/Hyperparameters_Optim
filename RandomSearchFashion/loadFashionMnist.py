@@ -45,6 +45,12 @@ testLoader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=Fal
 
 ##### DISPLAY FASHION EXAMPLES #####
 def displayExamples(train_loader):
+    """
+    Show 10 images with their label from the train_loader
+    Arguments :
+        train_loader -- training set
+    Returns : None
+    """
     nsamples=10
     classes_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal','Shirt', 'Sneaker', 'Bag', 'Ankle boot']
     imgs, labels = next(iter(train_loader))
