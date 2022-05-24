@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import torch.optim as optim
+import torch.optim.lr_scheduler as scheduler
 
 
 def trainAndEvaluate(model, trainLoader, testLoader, HPs):
@@ -27,6 +28,7 @@ def trainAndEvaluate(model, trainLoader, testLoader, HPs):
 
     criterion = nn.CrossEntropyLoss()
     optimizer = getattr(optim, HPs['optimizer'])(model.parameters(), lr=HPs['learningRate'])
+    #sched = scheduler.ExponentialLR(optimizer, gamma=0.9)
 
     for epoch in range(HPs['epochs']):  # loop over the dataset multiple times        
         ## Training
@@ -61,10 +63,13 @@ def trainAndEvaluate(model, trainLoader, testLoader, HPs):
             val_correct += (predictions == y).sum().item()
         valid_loss = valid_loss/len(testLoader.sampler)
         val_acc = val_correct/len(testLoader.sampler) * 100
-        
+    
         #print("Epoch:{}/{} \t TrainLoss:{:.3f} \t ValLoss:{:.3f} \t TrainAcc:{:.2f}% \t ValAcc:{:.2f}%".format(epoch+1, nbEpochs, train_loss, valid_loss, train_acc, val_acc))
 
         accuracy = val_acc
+
+        #sched.step()
+
     return accuracy
 
 

@@ -5,14 +5,11 @@ BATCH_SIZE  = 128   # Using minibatches of 128 samples
 DATASET_DIR = "./data"
 
 hyperParamsRange = {
-    'epochs': 4,
-    'optimizerList': ['Adam', 'SGD'], 
-    'nLayersLB': 1, 
-    'nlayersUB': 3, 
-    'nHiddenLayersLB': 4, 
-    'nHiddenLayersUB': 256, 
+    'epochs': 5,
+    'optimizerList': ['Adam', 'SGD'],  
+    'nLayers': (1, 3), 
+    'nHiddenLayers': (4, 256),
     'activationFunctionList': ['ReLU', 'Sigmoid'], 
-    'learningRateLB': 1e-5, 
-    'learningRateUB': 1e-1,
+    'learningRateExponent': (-5, -1),
     'dropout': (0.2, 0.5)
 }
