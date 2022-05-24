@@ -1,2 +1,4 @@
 data
 *.pyc
+CIFAR10
+FashionMNIST

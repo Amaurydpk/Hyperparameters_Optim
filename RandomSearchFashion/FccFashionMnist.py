@@ -1,28 +1,29 @@
 import torch.nn as nn
 
-##### FULLY CONNECTED #####
+def buildFCCModel(HPs, inputsize, numClasses, dropout=False):
+    """
+    Build a fully connected NN model
 
-# Build a model by implementing define-by-run design from Optuna
-def build_model_custom(trial, params, inputsize, num_classes, fixedNbUnits=True, dropout=False):
+    :param (dictionnary) HPs: a set of hyperparameters
+    :param (int) inputsize: size of the input
+    :param (int) numClasses: size of the outpout, number of classes
+    :param (bool) dropout: True if we want to add dropout layer, False otherwise
+
+    :return: (nn.Sequential) a fully connected nn network
+    """
     layers = []
     in_features = inputsize
-    n_layers = params['n_layers']
+    activation = nn.ReLU() if HPs['activation'] == 'ReLU' else nn.Sigmoid()
 
-    activation = nn.ReLU() if params['activation'] == 'ReLU' else nn.Sigmoid()
-
-    for i in range(n_layers):
-        if fixedNbUnits:
-            out_features = 64
-        else:
-            out_features = trial.suggest_int("n_units_l{}".format(i), 4, 256)
+    for i in range(HPs['nLayers']):
+        out_features = HPs['nHiddenLayersList'][i]
         layers.append(nn.Linear(in_features, out_features))
         layers.append(activation)
         if dropout:
-            p = trial.suggest_float("dropout_l{}".format(i), 0.2, 0.5)
-            layers.append(nn.Dropout(p))
+            layers.append(nn.Dropout(HPs['dropout']))
         in_features = out_features
 
-    layers.append(nn.Linear(in_features, num_classes))
+    layers.append(nn.Linear(in_features, numClasses))
     layers.append(nn.LogSoftmax(dim=1))
 
     return nn.Sequential(*layers)

@@ -3,11 +3,20 @@ import torch
 import torch.nn as nn
 import numpy as np
 import torch.optim as optim
-import optuna
 
-# Train and evaluate the accuracy of neural network with the addition of pruning mechanism
-def train_and_evaluate(trial, params, model, trainLoader, testLoader):
 
+def trainAndEvaluate(model, trainLoader, testLoader, HPs):
+    """
+    Train the model on the training set and return the accuracy on the test set
+
+    :param (nn.Sequential) model: a fully connected nn network
+    :param (DataLoader) trainLoader: training set
+    :param (DataLoader) testLoader: test set
+    :param (dictionnary) HPs: a set of hyperparameters
+
+    :return: (float) the accuracy of the model on the test set
+    """
+    
     use_cuda = torch.cuda.is_available()
     device = torch.device("cuda" if use_cuda else "cpu")
     # print(use_cuda)
@@ -17,9 +26,9 @@ def train_and_evaluate(trial, params, model, trainLoader, testLoader):
         criterion = criterion.cuda()
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = getattr(optim, params['optimizer'])(model.parameters(), lr=params['learning_rate'])
+    optimizer = getattr(optim, HPs['optimizer'])(model.parameters(), lr=HPs['learningRate'])
 
-    for epoch in range(params['epochs']):  # loop over the dataset multiple times        
+    for epoch in range(HPs['epochs']):  # loop over the dataset multiple times        
         ## Training
         train_loss = 0.0
         train_correct = 0
@@ -53,14 +62,9 @@ def train_and_evaluate(trial, params, model, trainLoader, testLoader):
         valid_loss = valid_loss/len(testLoader.sampler)
         val_acc = val_correct/len(testLoader.sampler) * 100
         
-    
         #print("Epoch:{}/{} \t TrainLoss:{:.3f} \t ValLoss:{:.3f} \t TrainAcc:{:.2f}% \t ValAcc:{:.2f}%".format(epoch+1, nbEpochs, train_loss, valid_loss, train_acc, val_acc))
-    
-        accuracy = val_acc
 
-        # Pruning
-        trial.report(accuracy, epoch)
-        if trial.should_prune():
-            raise optuna.exceptions.TrialPruned()
-        
+        accuracy = val_acc
     return accuracy
+
+
