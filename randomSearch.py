@@ -1,7 +1,7 @@
 import random
 from FCCclassification import buildFCCModel
 from trainTest import trainAndTest
-from constants import INPUT_SIZE, NUM_CLASSES
+from constants import INPUT_SIZE_FASHION, NUM_CLASSES_FASHION
 from functions import printDictionnary
 
 
@@ -45,7 +45,7 @@ def evaluateBlackbox(trainLoader, testLoader, HPs):
 
     :return: (float) the objective function value (the accuracy of the model)
     """
-    model = buildFCCModel(INPUT_SIZE, NUM_CLASSES, HPs['activation'], HPs['nLayers'], HPs['nUnitsList'], HPs['dropout'])
+    model = buildFCCModel(INPUT_SIZE_FASHION, NUM_CLASSES_FASHION, HPs['activation'], HPs['nLayers'], HPs['nUnitsList'], HPs['dropout'])
     accuracy = trainAndTest(model, trainLoader, testLoader, HPs)
     return accuracy
 

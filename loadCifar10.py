@@ -4,7 +4,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import numpy as np
-from RandomSearchFashion.constants import DATASET_DIR, BATCH_SIZE_CIFAR
+from constants import DATASET_DIR, BATCH_SIZE_CIFAR
 
 
 torch.manual_seed(19)

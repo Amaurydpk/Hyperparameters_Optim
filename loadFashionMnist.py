@@ -25,7 +25,7 @@ class DatasetTransformer(torch.utils.data.Dataset):
         return len(self.base_dataset)
 
 
-def loadFashionMNIST():
+def loadDataSetFashionMNIST():
     """
     Load the Fashion MNIST dataset and return a training set and a test set
 
@@ -66,7 +66,7 @@ def displayExamples(trainLoader):
 
 ### MAIN ###
 if __name__ == '__main__':
-    trainLoader, testLoader = loadFashionMNIST()
+    trainLoader, testLoader = loadDataSetFashionMNIST()
     print("The train set contains {} images, in {} batches".format(len(trainLoader.dataset), len(trainLoader)))
     print("The test set contains {} images, in {} batches".format(len(testLoader.dataset), len(testLoader)))
     displayExamples(trainLoader)
