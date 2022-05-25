@@ -4,7 +4,8 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-from constants import BATCH_SIZE, DATASET_DIR
+from constants import BATCH_SIZE_FASHION, DATASET_DIR
+
 
 torch.manual_seed(19)
 
@@ -37,14 +38,14 @@ def loadFashionMNIST():
     test_dataset = torchvision.datasets.FashionMNIST(root=DATASET_DIR, train=False, download=True, transform=None)
     test_dataset  = DatasetTransformer(test_dataset , transforms.ToTensor())
     # Transform into DataLoader
-    trainLoader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True) # <-- this reshuffles the data at every epoch
-    testLoader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    trainLoader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE_FASHION, shuffle=True) # <-- this reshuffles the data at every epoch
+    testLoader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE_FASHION, shuffle=False)
     return trainLoader, testLoader
 
 
 def displayExamples(trainLoader):
     """
-    Display 10 images with their label from the train_loader
+    Display 10 images with their label from the trainLoader
 
     :param (DataLoader) train_loader: training set
 

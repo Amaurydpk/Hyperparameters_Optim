@@ -1,8 +1,9 @@
 
 INPUT_SIZE = 1*28*28 
 NUM_CLASSES = 10
-BATCH_SIZE  = 128   # Using minibatches of 128 samples
 DATASET_DIR = "./data"
+
+BATCH_SIZE_FASHION  = 128   # Using minibatches of 128 samples
 
 hyperParamsRange = {
     'epochs': 5,
@@ -13,3 +14,5 @@ hyperParamsRange = {
     'learningRateExponent': (-5, -1),
     'dropout': (0.2, 0.5)
 }
+
+BATCH_SIZE_CIFAR = 4
