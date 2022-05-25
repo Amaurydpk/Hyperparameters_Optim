@@ -3,6 +3,7 @@ from FCCclassification import buildFCCModel
 from trainTest import trainAndEvaluate
 from constants import INPUT_SIZE, NUM_CLASSES
 
+
 def giveRandomHPs(HPrange):
     """
     Return a random set of hyperparameters from the HPrange dictionnary
@@ -23,6 +24,7 @@ def giveRandomHPs(HPrange):
     learningRateExponent = random.randint(HPrange['learningRateExponent'][0], HPrange['learningRateExponent'][1])
     learningRate = 10**learningRateExponent
     activationFunction = random.choice(HPrange['activationFunctionList'])
+    # Build HPs set
     HPs = {
         'epochs': HPrange['epochs'],
         'optimizer': optim,
