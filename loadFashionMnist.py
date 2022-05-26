@@ -1,10 +1,10 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-from constants import BATCH_SIZE_FASHION, DATASET_DIR
+from constants import BATCH_SIZE_FASHION, DATASET_DIR, VALID_RATIO
 
 
 torch.manual_seed(19)
@@ -25,22 +25,33 @@ class DatasetTransformer(torch.utils.data.Dataset):
         return len(self.base_dataset)
 
 
-def loadDataSetFashionMNIST():
+def loadDataSetFashionMNIST(dataDir, batchSize, validRatio):
     """
     Load the Fashion MNIST dataset and return a training set and a test set
 
-    :return: (DataLoader, DataLoader) the training and the test set
+    :param (string) dataDir: the path for the data folder
+    :param (int) batchSize: the size of the batch
+    :param (float) validRatio: the ratio between 0 and 1 to split train/valid
+
+    :return: (DataLoader, DataLoader, DataLoader) the training, validation and test set
     """
     # Load the the training set
-    train_dataset = torchvision.datasets.FashionMNIST(root=DATASET_DIR, train=True, download=True, transform=None)
-    train_dataset = DatasetTransformer(train_dataset, transforms.ToTensor())
+    trainValidDataset = torchvision.datasets.FashionMNIST(root=dataDir, train=True, download=True, transform=None)
+    trainValidDataset = DatasetTransformer(trainValidDataset, transforms.ToTensor())
+    # Split into training and validation sets
+    nb_train = int((1 - validRatio) * len(trainValidDataset))
+    nb_valid = int(validRatio * len(trainValidDataset))
+    trainDataset, validDataset = random_split(trainValidDataset, [nb_train, nb_valid])
+
     # Load the test set
-    test_dataset = torchvision.datasets.FashionMNIST(root=DATASET_DIR, train=False, download=True, transform=None)
-    test_dataset  = DatasetTransformer(test_dataset , transforms.ToTensor())
+    testDataset = torchvision.datasets.FashionMNIST(root=dataDir, train=False, download=True, transform=None)
+    testDataset  = DatasetTransformer(testDataset , transforms.ToTensor())
+
     # Transform into DataLoader
-    trainLoader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE_FASHION, shuffle=True) # <-- this reshuffles the data at every epoch
-    testLoader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE_FASHION, shuffle=False)
-    return trainLoader, testLoader
+    trainLoader = DataLoader(dataset=trainDataset, batch_size=batchSize, shuffle=True) # <-- this reshuffles the data at every epoch
+    validLoader = DataLoader(dataset=validDataset, batch_size=batchSize, shuffle=False)
+    testLoader = DataLoader(dataset=testDataset, batch_size=batchSize, shuffle=False)
+    return trainLoader, validLoader, testLoader
 
 
 def displayExamples(trainLoader):
@@ -66,8 +77,9 @@ def displayExamples(trainLoader):
 
 ### MAIN ###
 if __name__ == '__main__':
-    trainLoader, testLoader = loadDataSetFashionMNIST()
+    trainLoader, validLoader, testLoader = loadDataSetFashionMNIST(dataDir=DATASET_DIR, batchSize=BATCH_SIZE_FASHION, validRatio=VALID_RATIO)
     print("The train set contains {} images, in {} batches".format(len(trainLoader.dataset), len(trainLoader)))
+    print("The validation set contains {} images, in {} batches".format(len(validLoader.dataset), len(validLoader)))
     print("The test set contains {} images, in {} batches".format(len(testLoader.dataset), len(testLoader)))
     displayExamples(trainLoader)
 

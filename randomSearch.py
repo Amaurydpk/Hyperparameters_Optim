@@ -1,9 +1,8 @@
 import random
-from FCCclassification import buildFCCModel
-from trainTest import trainAndTest
-from constants import INPUT_SIZE_FASHION, NUM_CLASSES_FASHION
 from functions import printDictionnary
+from blackBoxes import evaluateBlackboxFashion
 
+random.seed(19) # Set seed for reproducible results
 
 def giveRandomHPs(HPrange):
     """
@@ -35,28 +34,12 @@ def giveRandomHPs(HPrange):
     return HPs
 
 
-def evaluateBlackbox(trainLoader, testLoader, HPs):
-    """
-    Return the accuracy of the model trained with a givens set of HPs
-   
-    :param (DataLoader) trainLoader: training set
-    :param (DataLoader) testLoader: test set
-    :param (dictionnary) HPs: a set of hyperparameters
-
-    :return: (float) the objective function value (the accuracy of the model)
-    """
-    model = buildFCCModel(INPUT_SIZE_FASHION, NUM_CLASSES_FASHION, HPs['activation'], HPs['nLayers'], HPs['nUnitsList'], HPs['dropout'])
-    accuracy = trainAndTest(model, trainLoader, testLoader, HPs)
-    return accuracy
-
-
-def randomSearch(trainLoader, testLoader, HPrange, nbTrials):
+def randomSearch(blackBox, HPrange, nbTrials):
     """
     Performs a random search for hyperparameters optimizitation and display 
     the best set of hyperparameters found in the finite number of trials
-   
-    :param (DataLoader) trainLoader: training set
-    :param (DataLoader) testLoader: test set
+    
+    :param (function) blackBox: the blackbox to use
     :param (dictionnary) HPrange: dictionnary of range for each hyperparameter
     :param (int) nbTrials: number of trials to perform
 
@@ -69,7 +52,7 @@ def randomSearch(trainLoader, testLoader, HPrange, nbTrials):
         HPs = giveRandomHPs(HPrange) # a random set of HPs
         trials.append(HPs)
         printDictionnary(HPs)
-        accuracy = evaluateBlackbox(trainLoader, testLoader, HPs) # evaluate the model
+        accuracy = blackBox(HPs) # evaluate the model
         print("\nACCURACY = {}\n".format(round(accuracy, 3)))
         accuracies.append(accuracy)
         if accuracy >= accuracies[bestIndex]: # record the index if we improve accuracy
@@ -82,14 +65,13 @@ def randomSearch(trainLoader, testLoader, HPrange, nbTrials):
     return trials[bestIndex]
 
 
-def randomSearchWithStatOptim(trainLoader, testLoader, HPrange, nbTrials):
+def randomSearchWithStatOptim(blackBox, HPrange, nbTrials):
     """
     Performs random searches for hyperparameters optimizitation 
     for each optimizer in HPrange we do a random search (with optim fixed) 
     and compute the mean accuracy to know the best optimizer
    
-    :param (DataLoader) trainLoader: training set
-    :param (DataLoader) testLoader: test set
+    :param (function) blackBox: the blackbox to use
     :param (dictionnary) HPrange: dictionnary of range for each hyperparameter
     :param (int) nbTrials: number of trials to perform
 
@@ -108,7 +90,7 @@ def randomSearchWithStatOptim(trainLoader, testLoader, HPrange, nbTrials):
             HPs['optimizer'] = optim # fixed optimizer
             trials.append(HPs)
             #printDictionnary(HPs)
-            accuracy = evaluateBlackbox(trainLoader, testLoader, HPs) # evaluate the model
+            accuracy = blackBox(HPs) # evaluate the model
             print("Trial {} : accuracy = {}".format(i+1, round(accuracy, 3)))
             accuracies.append(accuracy)
             if accuracy >= accuracies[bestIndex]: # record the index if we improve accuracy

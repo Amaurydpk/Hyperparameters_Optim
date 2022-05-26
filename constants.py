@@ -1,5 +1,6 @@
 
 DATASET_DIR = "./data"
+VALID_RATIO = 0.2  # Going to use 80%/20% split for train/valid
 
 # Fashion MNIST
 INPUT_SIZE_FASHION = 1*28*28 
@@ -8,7 +9,7 @@ BATCH_SIZE_FASHION = 128   # Using minibatches of 128 samples
 
 HPrangeFashionMnist = {
     'epochs': 5,
-    'optimizerList': ['Adam', 'SGD'],  
+    'optimizerList': ['Adam', 'ASGD'],  
     'nLayers': (1, 3), 
     'nHiddenLayers': (4, 256),
     'activationFunctionList': ['ReLU', 'Sigmoid'], 
