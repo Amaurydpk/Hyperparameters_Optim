@@ -4,6 +4,8 @@ import torch.nn as nn
 import numpy as np
 import torch.optim as optim
 import torch.optim.lr_scheduler as scheduler
+import time
+from constants import PRINT
 
 
 def trainOneEpoch(model, trainLoader, optimizer, device):
@@ -22,7 +24,6 @@ def trainOneEpoch(model, trainLoader, optimizer, device):
     trainingLoss = 0
     for batch, (X, y) in enumerate(trainLoader):
         X, y = X.to(device), y.to(device)
-        X = X.view(X.size(0), -1)
         # Forward pass
         pred = model(X)
         loss = fLoss(pred, y)
@@ -52,7 +53,6 @@ def accuracy(model, loader, device):
         fLoss = torch.nn.CrossEntropyLoss()
         for(X, y) in loader:
             X, y = X.to(device), y.to(device)
-            X = X.view(X.size(0), -1)
             # Forward pass
             pred = model(X)
             # the class with the highest value is what we choose as prediction
@@ -64,7 +64,7 @@ def accuracy(model, loader, device):
 
 
 
-def train(model, trainLoader, validLoader, nbEpochs, opt, learningRate, device):
+def train(model, trainLoader, validLoader, nbEpochs, opt, learningRate, weightDecay, optimParam1, optimParam2, device):
     """
     Train on all epochs the model on the training set and select the best trained model 
     based on accuracy on the validation set
@@ -75,52 +75,80 @@ def train(model, trainLoader, validLoader, nbEpochs, opt, learningRate, device):
     :param (int) nbEpochs: number of epochs 
     :param (str) opt: the name of the optimizer to use
     :param (float) learningRate: the value of the learning rate
+    :param (float) weightDecay: the weight decay for the optimizer (L2 penalty)
+    :param (float) optimParam1: a param for the optimizer
+    :param (float) optimParam2: a param for the optimizer
     :param (torch.device) device: cuda or cpu
 
     :return: (nn.Sequential) the trained model
     """
-    # if opt == "Adam":
-    #     optimizer = optim.Adam(model.parameters(), betas=(b1, b2), lr=lr, weight_decay=0.05)
-    # elif opt == "ASGD":
-    #     optimizer = optim.ASGD(model.parameters(), lr=lr, lambd=b2, alpha=b1)
-    # else:
-    #     raise Exception("Optimizer must be a string between Adam or ASGD")
-
-    optimizer = getattr(optim, opt)(model.parameters(), lr=learningRate)
+    if opt == "Adam":
+        optimizer = optim.Adam(model.parameters(), betas=(optimParam1, optimParam2), lr=learningRate, weight_decay=weightDecay)
+    elif opt == "ASGD":
+        optimizer = optim.ASGD(model.parameters(), lr=learningRate, lambd=optimParam1, alpha=optimParam2, weight_decay=weightDecay)
+    elif opt == "Adagrad":
+        optimizer = optim.Adagrad(model.parameters(), lr=learningRate, lr_decay=optimParam1, initial_accumulator_value=optimParam2, weight_decay=weightDecay)
+    elif opt == "RMSprop":
+        optimizer = optim.RMSprop(model.parameters(), lr=learningRate, momentum=optimParam1, alpha=optimParam2, weight_decay=weightDecay)
+    
+    #optimizer = getattr(optim, opt)(model.parameters(), lr=learningRate)
     sched = scheduler.ReduceLROnPlateau(optimizer, 'min')
+    
+    
+    bestAcc = 0
 
-    bestPrecision = 0
-    trainingLosses = []
-    accuracies = []
-    validationLosses = []
+    listTrainAcc = []
+    listTrainLoss = []
+    listValLoss = []
+    listValAcc = []
+    
+    stop = False # For early stopping
+    epoch = 1
 
-    for epoch in range(nbEpochs):  # loop over the dataset multiple times        
+    #if torch.cuda.is_available():
+        #model = torch.nn.DataParallel(model)
+    
+    t0 = time.time()
+    executionTime = 0
+   
+    while (not stop) and (epoch <= nbEpochs):  # loop over the dataset multiple times
+        if PRINT:
+            print("> Epoch {}".format(epoch))        
+        
         # Train
         model = trainOneEpoch(model, trainLoader, optimizer, device)
 
         # Accuracy on training set
-        trainPrecision, train_loss = accuracy(model, trainLoader, device)
-        trainingLosses.append(train_loss)
+        trainAcc, trainLoss = accuracy(model, trainLoader, device)
+        listTrainLoss.append(trainLoss)
+        listTrainAcc.append(trainAcc)
 
         # Accuracy on validation set
-        precision, validationLoss = accuracy(model, validLoader, device)
-        validationLosses.append(validationLoss)
-        accuracies.append(precision)
+        valAcc, valLoss = accuracy(model, validLoader, device)
+        listValLoss.append(valLoss)
+        listValAcc.append(valAcc)
 
-        if precision > bestPrecision:
-            bestPrecision = precision
+        executionTime = time.time() - t0
+
+        if PRINT:
+            print("\tExecution time: {:.2f}, Train accuracy: {:.2f}, Val accuracy: {:.2f}".format(executionTime, trainAcc, valAcc))
+
+        if valAcc > bestAcc:
+            bestAcc = valAcc
             bestModel = model
+        
+        # Early stopping
+        if (epoch >= nbEpochs/5) and (bestAcc < 20):
+            stop = True
+            if PRINT:
+                print("\tEarly stopped")
 
         # Scheduler
-        sched.step(validationLoss)
+        sched.step(valLoss)
+
+        epoch += 1
 
     return bestModel
-    
-
-
-
-
-
 
 
 

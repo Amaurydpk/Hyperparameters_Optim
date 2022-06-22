@@ -1,10 +1,10 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 import matplotlib.pyplot as plt
 import numpy as np
-from constants import DATASET_DIR, BATCH_SIZE_CIFAR
+from constants import DATASET_DIR, BATCH_SIZE_CIFAR, VALID_RATIO, NUM_WORKERS
 
 
 torch.manual_seed(19)
@@ -21,15 +21,23 @@ def loadCIFAR10():
     transform = transforms.Compose(
         [transforms.ToTensor(), 
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+   
     # Load the the training set
-    trainSet = torchvision.datasets.CIFAR10(root=DATASET_DIR, train=True, download=True, transform=transform)
-    # Load the test set
-    testSet = torchvision.datasets.CIFAR10(root=DATASET_DIR, train=False, download=True, transform=transform)
-    # Transform into DataLoader
-    trainLoader = DataLoader(trainSet, batch_size=BATCH_SIZE_CIFAR, shuffle=True) # <-- this reshuffles the data at every epoch
-    testLoader = DataLoader(testSet, batch_size=BATCH_SIZE_CIFAR, shuffle=False)
-    return trainLoader, testLoader
+    trainValidDataset = torchvision.datasets.CIFAR10(root=DATASET_DIR, train=True, download=True, transform=transform)
+    # Split into training and validation sets
+    nb_train = int((1 - VALID_RATIO) * len(trainValidDataset))
+    nb_valid = int(VALID_RATIO * len(trainValidDataset))
+    trainDataset, validDataset = random_split(trainValidDataset, [nb_train, nb_valid])
 
+    # Load the test set
+    testDataset = torchvision.datasets.CIFAR10(root=DATASET_DIR, train=False, download=True, transform=transform)
+
+    # Transform into DataLoader
+    trainLoader = DataLoader(dataset=trainDataset, batch_size=BATCH_SIZE_CIFAR, shuffle=True, num_workers=NUM_WORKERS) # <-- this reshuffles the data at every epoch
+    validLoader = DataLoader(dataset=validDataset, batch_size=BATCH_SIZE_CIFAR, shuffle=False, num_workers=NUM_WORKERS)
+    testLoader = DataLoader(dataset=testDataset, batch_size=BATCH_SIZE_CIFAR, shuffle=False, num_workers=NUM_WORKERS)
+    return trainLoader, validLoader, testLoader
+    
 
 def displayExamples(trainLoader):
     """
@@ -62,7 +70,7 @@ def imshow(img):
 
 ### MAIN ###
 if __name__ == '__main__':
-    trainLoader, testLoader = loadCIFAR10()
+    trainLoader, validLoader, testLoader = loadCIFAR10()
     print("The train set contains {} images, in {} batches".format(len(trainLoader.dataset), len(trainLoader)))
     print("The test set contains {} images, in {} batches".format(len(testLoader.dataset), len(testLoader)))
     displayExamples(trainLoader)
