@@ -4,15 +4,17 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, random_split
 import matplotlib.pyplot as plt
 import numpy as np
-from constants import DATASET_DIR, BATCH_SIZE_CIFAR, VALID_RATIO, NUM_WORKERS
+from constants import DATASET_DIR, VALID_RATIO, NUM_WORKERS
 
 
 torch.manual_seed(19)
 
 
-def loadCIFAR10():
+def loadCIFAR10(batchSize):
     """
     Load the CIFAR-10 dataset and return a training set and a test set
+
+    :param (int) batchSize : the batch size value
 
     :return: (DataLoader, DataLoader) the training and the test set
     """    
@@ -33,9 +35,9 @@ def loadCIFAR10():
     testDataset = torchvision.datasets.CIFAR10(root=DATASET_DIR, train=False, download=True, transform=transform)
 
     # Transform into DataLoader
-    trainLoader = DataLoader(dataset=trainDataset, batch_size=BATCH_SIZE_CIFAR, shuffle=True, num_workers=NUM_WORKERS) # <-- this reshuffles the data at every epoch
-    validLoader = DataLoader(dataset=validDataset, batch_size=BATCH_SIZE_CIFAR, shuffle=False, num_workers=NUM_WORKERS)
-    testLoader = DataLoader(dataset=testDataset, batch_size=BATCH_SIZE_CIFAR, shuffle=False, num_workers=NUM_WORKERS)
+    trainLoader = DataLoader(dataset=trainDataset, batch_size=batchSize, shuffle=True, num_workers=NUM_WORKERS) # <-- this reshuffles the data at every epoch
+    validLoader = DataLoader(dataset=validDataset, batch_size=batchSize, shuffle=False, num_workers=NUM_WORKERS)
+    testLoader = DataLoader(dataset=testDataset, batch_size=batchSize, shuffle=False, num_workers=NUM_WORKERS)
     return trainLoader, validLoader, testLoader
     
 
@@ -52,7 +54,7 @@ def displayExamples(trainLoader):
     dataiter = iter(trainLoader)
     images, labels = dataiter.next()
     # print labels
-    print(' '.join(f'{classes[labels[j]]:5s}' for j in range(BATCH_SIZE_CIFAR)))
+    print(' '.join(f'{classes[labels[j]]:5s}' for j in range(32)))
     # show images
     imshow(torchvision.utils.make_grid(images))
     
@@ -70,7 +72,7 @@ def imshow(img):
 
 ### MAIN ###
 if __name__ == '__main__':
-    trainLoader, validLoader, testLoader = loadCIFAR10()
+    trainLoader, validLoader, testLoader = loadCIFAR10(batchSize=128)
     print("The train set contains {} images, in {} batches".format(len(trainLoader.dataset), len(trainLoader)))
     print("The test set contains {} images, in {} batches".format(len(testLoader.dataset), len(testLoader)))
     displayExamples(trainLoader)

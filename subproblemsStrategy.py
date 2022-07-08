@@ -1,104 +1,173 @@
+from unicodedata import name
 import PyNomad
 import sys
-import torch
-from trainTest import train, accuracy
-from loadFashionMnist import loadDataSetFashionMNIST
-from models import FullyConnectedNeuralNet
-from constants import EPOCHS, INPUT_SIZE_FASHION, NUM_CLASSES_FASHION, HPrangeFCC, MAX_BB_EVAL
+from constants import MAX_BB_EVAL, DEFAULT_OPTIMIZER_SETTINGS
+from hyperparameters import setHyperparams
 import time
 import random
 
-def bb(listUnit, dropout, lr):
-    """
+
+def writeFileBbPynomad(modelType, HPs, dim):
     
-    """
-    # Load training, validation and testing sets formatted with the batch size
-    trainLoader, validLoader, testLoader = loadDataSetFashionMNIST()
-    # Construct model
-    model = FullyConnectedNeuralNet(INPUT_SIZE_FASHION, NUM_CLASSES_FASHION, 'ReLU', 2, listUnit, dropout)
-
-    # Decide whether CPU or GPU is used
-    gpuAvailable = torch.cuda.is_available()
-    device = torch.device("cuda" if gpuAvailable else "cpu")
-    # Cast model to proper hardware (CPU or GPU)
-    model = model.to(device)
-
-    # Trained model
-    model = train(model, trainLoader, validLoader, EPOCHS, 'Adam', lr, device)
+    exe = open('bbPynomad.py','w')
     
-    # Final precision on trained model on test dataset 
-    return -(accuracy(model, testLoader, device)[0]) 
+    # Blackbox function
+    exe.write("""import sys\n"""+
+    """import torch\n"""+
+    """from trainTest import train, accuracy\n"""+
+    """from loadFashionMnist import loadFashionMNIST\n"""+
+    """from models import FullyConnectedNeuralNet, ConvNeuralNet\n"""+
+    """from constants import EPOCHS, INPUT_SIZE_FASHION, INPUT_CHANNELS_FASHION, NUM_CLASSES_FASHION, INPUT_CHANNELS_CIFAR, INPUT_SIZE_CIFAR, NUM_CLASSES_CIFAR\n"""+
+    "\n"
+    )
+    if DEFAULT_OPTIMIZER_SETTINGS:
+        exe.write("""def bb(listUnit, dropout, lrExponent):\n""")
+    else:    
+        exe.write("""def bb(listUnit, dropout, lrExponent, optimWeightDecay, optimParam1, optimParam2):\n""")
+    exe.write("""\ttrainLoader, validLoader, testLoader = loadFashionMNIST()\n""")
+    exe.write("""\tmodel = FullyConnectedNeuralNet(INPUT_SIZE_FASHION*INPUT_SIZE_FASHION*INPUT_CHANNELS_FASHION, NUM_CLASSES_FASHION, '{}', {}, listUnit, dropout)\n"""
+            .format(HPs.activationFunction.value, HPs.nFullLayers.value))
 
+    exe.write("""\tgpuAvailable = torch.cuda.is_available()\n"""+
+            """\tdevice = torch.device("cuda" if gpuAvailable else "cpu")\n"""+
+            """\tmodel = model.to(device)\n""")
+    if DEFAULT_OPTIMIZER_SETTINGS:
+        exe.write("""\tmodel = train(model, trainLoader, validLoader, device, EPOCHS, '{}', lrExponent)\n""".format(HPs.optimizer.value))
+    else:
+        exe.write("""\tmodel = train(model, trainLoader, validLoader, device, EPOCHS, '{}', lrExponent,  optimWeightDecay, optimParam1, optimParam2)\n""".format(HPs.optimizer.value))
+    exe.write("""\treturn -(accuracy(model, testLoader, device)[0])\n\n""")
 
-def bbPynomad(x):
-    """
-    Black-box function formatted to software PyNomad
-    """
-    try:
-        f = bb([int(x.get_coord(0)), int(x.get_coord(1))], x.get_coord(2), x.get_coord(3))
-        x.setBBO(str(f).encode("UTF-8"))
-    except:
-        print("Unexpected eval error", sys.exc_info()[0])
-        return 0
-    return 1  # 1: success 0: failed evaluation
+    # bb Pynomad
+    exe.write("""def bbPynomad(x):\n""" +
+              """\ttry:\n""")
+    paramX = """("""
+    index = 0
+    listUnit = """["""
+    for i in range(HPs.nFullLayers.value):
+        if i != HPs.nFullLayers.value - 1:
+            listUnit+="int(x.get_coord({})), ".format(i)
+        else:
+            listUnit+="int(x.get_coord({}))], ".format(i)
+        index += 1
+    paramX += listUnit
+    for j in range(dim-index):
+        if j != dim-index-1:
+            paramX += """x.get_coord({}), """.format(index+j)
+        else:
+            paramX += """x.get_coord({}))""".format(index+j)
+    
+    exe.write("""\t\tf = bb""" + paramX + """\n""")
+
+    exe.write("""\t\tx.setBBO(str(f).encode("UTF-8"))\n""" +
+    """\texcept:\n""" +
+    """\t\tprint("Unexpected eval error", sys.exc_info()[0])\n""" +
+    """\t\treturn 0\n""" +
+    """\treturn 1  # 1: success 0: failed evaluation\n"""
+    )
+
+    exe.close()
 
     
-
-
-
+    
 
 ### MAIN ###
 if __name__ == '__main__':
 
-    budget = MAX_BB_EVAL
-    nTrials = int(budget/10)
+    modelType = "fcc"
+    dataSet = "fashion"
+
+    budget = 30 #MAX_BB_EVAL
+    nTrials = 2
     budgetByTrials = int(budget / nTrials)
+    lh_budget = int(budgetByTrials/5) # budget for LHS
+
+    memoryHPsCatMetaTested = [] # Memory to keep set of meta and categorical HPs already tested
+    
+    t0 = time.time()
+
+    HPs = setHyperparams(model=modelType)
 
     for i in range(nTrials):
         
-        # Random choice on meta and categorical variables
-        optim = random.choice(HPrangeFCC['optimizerList'])
-        nLayers = random.randint(HPrangeFCC['nLayers'][0], HPrangeFCC['nLayers'][1])
-        activationFunction = random.choice(HPrangeFCC['activationFunctionList'])
+        ## Meta and categorical HPs
+        MetaAndCatHPs = HPs.getHPsOfType(meta=True, hpType='all') + HPs.getHPsOfType(meta=False, hpType='cat')
+        different = False
+        # TO ADD : stop criterion if exceed number of combination possible
+        while not different: # to be sure to not test twice the same combination
+            # random draw of meta and categorical HPs
+            randomDraw = []
+            for hp in MetaAndCatHPs:
+                hp.setRandomValue()
+                randomDraw.append(hp.value)
+            if randomDraw not in memoryHPsCatMetaTested: 
+                different = True
+        # Keep memory of meta and categorical fixed values
+        memoryHPsCatMetaTested.append(randomDraw)
 
-        # Lower bound and upper bound of standard variables (units, )
-        lb, ub = [], []
-        for i in range(nLayers): # units
-            lb.append(int(HPrangeFCC['nHiddenLayers'][0]))
-            ub.append(int(HPrangeFCC['nHiddenLayers'][1]))
-        # dropout
-        lb.append(HPrangeFCC['dropout'][0])
-        ub.append(HPrangeFCC['dropout'][1])
-        # lr
-        lb.append(HPrangeFCC['initialLearningRate'][0])
-        ub.append(HPrangeFCC['initialLearningRate'][1])
-        # weight decay
-        lb.append(HPrangeFCC['optimWeightDecay'][0])
-        ub.append(HPrangeFCC['optimWeightDecay'][1])
-        # optim param 1
-        lb.append(HPrangeFCC['optimParam1'][0])
-        ub.append(HPrangeFCC['optimParam1'][1])
-        # optim param 2
-        lb.append(HPrangeFCC['optimParam2'][0])
-        ub.append(HPrangeFCC['optimParam2'][1])
-
+        # Print
+        print("========= Trial {} =========".format(i+1))
+        print("Fixed HPs:")
+        for hp in MetaAndCatHPs:
+            print("\t" + repr(hp))
+        print()
+    
+        ## NOMAD ---------------------
+        input_type = "BB_INPUT_TYPE ("  # R=real (float) and I=integer
+        dim = 0
+        ## Bounds ----
+        lb, ub  = [], []
+        ## Standard variables ---
+        standardHPs = HPs.getHPsOfType(meta=False, hpType='int') + HPs.getHPsOfType(meta=False, hpType='real')
+        nameStandardHPs = []
+        first = True # Just to have a space or not
+        for hp in standardHPs:
+            nameStandardHPs.append(hp.name)
+            lb += [hp.lb]
+            ub += [hp.ub]
+            if first:
+                typeLetter = 'R' if hp.type == 'real' else 'I'
+                first = False
+            else:
+                typeLetter = ' R' if hp.type == 'real' else ' I'
+            input_type += typeLetter
+            dim += 1
+        
+        print("Standard HPs to optimize: {}".format(nameStandardHPs))
+        print("Lower bounds : {}".format(lb))
+        print("Upper bounds : {}".format(ub))
+        print()
+        
         # Formatting the parameters for PyNomad
-        # R=real (float) and I=integer
-        input_type = "BB_INPUT_TYPE (" + " I" * nLayers + "R R R R R)"
-        dimension = "DIMENSION "
-        max_nb_of_evaluations = "MAX_BB_EVAL 100"
-
+        input_type += ")"
+        dimension = "DIMENSION " + str(dim)
+        max_nb_of_evaluations = "MAX_BB_EVAL " + str(budgetByTrials)
+        lh_search_number = "LH_SEARCH "+ str(lh_budget) + " 0"
         params = [max_nb_of_evaluations, dimension, input_type,
-                "DISPLAY_DEGREE 2", "BB_OUTPUT_TYPE OBJ", "DISPLAY_ALL_EVAL TRUE", "DISPLAY_STATS BBE OBJ (SOL)", "LH_SEARCH 50 0"]
-        # "FIXED_VARIABLE 1"
-        # "VNS_MADS_SEARCH TRUE"
-        # LH_SEARCH 5 0
+        "DISPLAY_DEGREE 2", "BB_OUTPUT_TYPE OBJ", "DISPLAY_ALL_EVAL TRUE", "DISPLAY_STATS BBE OBJ (SOL)", lh_search_number]
+        print("Params given to NOMAD:")
+        print(params)
+        print()
 
+        writeFileBbPynomad(modelType, HPs, dim)
 
-        # Important : PyNomad strictly minimizes the bb function
-        t0 = time.time()
-        PyNomad.optimize(bbPynomad, [], lb, ub, params)
-        print(time.time() - t0)
+        import bbPynomad
+        
+        # try:
+        #     sol = PyNomad.optimize(bbPynomad.bbPynomad, [], lb, ub, params)
+        # except Exception as e:
+        #     print("Stopped because error : "+ str(e))
+        #     sol = None
+
+        # print()
+        # print(sol)
+        # print()
+
+        print()
+    
+    print(memoryHPsCatMetaTested)
+    
+    print()
+    print(str(int(time.time() - t0)) + " seconds")
 
   
 
