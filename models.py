@@ -180,7 +180,7 @@ class ConvNeuralNet(nn.Module):
             current_size = np.floor(temp) 
             # Pooling
             pooling = self.param_conv[i][-1]                                                                                    
-            if pooling: # If polling is True                                                                                  
+            if pooling: # If poolling is True                                                                                  
                 if current_size > 1:                                                                                          
                     current_size = np.floor(current_size / 2)                                                                                                                
             current_size = int(current_size)

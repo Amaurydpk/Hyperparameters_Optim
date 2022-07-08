@@ -163,20 +163,23 @@ class setHyperparams:
         
         self.nFullLayers = Hyperparam('nFullLayers', 'int', [1, 3], isMeta=True)
 
+        self.activationFunction = Hyperparam('activationFunction', 'cat', ['ReLU', 'Sigmoid', 'Tanh'])
+
+        self.dropout = Hyperparam('dropout', 'real', [0.2, 0.5])
+
+        self.learningRateExponent = Hyperparam('learningRateExponent', 'int', [-5, -1])
+
         optimIsMeta = not DEFAULT_OPTIMIZER_SETTINGS # If we use default optimizer settings the optimizer is not considered as a meta variable
                                                      # If we do not use default optimizer settings the optimize is considered as a meta variable
         self.optimizer = Hyperparam('optimizer', 'cat', ['ASGD', 'Adam', 'Adagrad', 'RMSprop'], isMeta=optimIsMeta)
 
-        self.learningRateExponent = Hyperparam('learningRateExponent', 'int', [-5, -1])
-
-        self.activationFunction = Hyperparam('activationFunction', 'cat', ['ReLU', 'Sigmoid', 'Tanh'])
-
-        self.dropout = Hyperparam('dropout', 'real', [0.2, 0.5])
-        
     
     def getHPsOfType(self, meta=False, hpType='all'):
         """
         Return a list of HPs corresponding to criteria : meta or not and the given type (hpType)
+
+        :param (bool) meta: to say if we want meta HP or not (True or False)
+        :param (str) hpType: type of HP wanted ('int', 'real', 'cat' or 'all')
         """
         HPs = []
         for key, hp in self.__dict__.items(): 
@@ -221,7 +224,11 @@ class setHyperparams:
             print(hp)
             if hp.isMeta:
                 hp.printChildren()
-                
+
+
+# TO DO: enelver les tuples dans la liste des params convolutionnel et essayer de traiter ça avec les numéros de couches
+
+
 
 ### MAIN ###
 if __name__ == '__main__':

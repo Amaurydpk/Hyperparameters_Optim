@@ -7,7 +7,7 @@ import time
 import random
 
 
-def writeFileBbPynomad(modelType, HPs, dim):
+def writeFileBbPynomad(modelType, dataSet, HPs, dim):
     
     exe = open('bbPynomad.py','w')
     
@@ -24,6 +24,7 @@ def writeFileBbPynomad(modelType, HPs, dim):
         exe.write("""def bb(listUnit, dropout, lrExponent):\n""")
     else:    
         exe.write("""def bb(listUnit, dropout, lrExponent, optimWeightDecay, optimParam1, optimParam2):\n""")
+    
     exe.write("""\ttrainLoader, validLoader, testLoader = loadFashionMNIST()\n""")
     exe.write("""\tmodel = FullyConnectedNeuralNet(INPUT_SIZE_FASHION*INPUT_SIZE_FASHION*INPUT_CHANNELS_FASHION, NUM_CLASSES_FASHION, '{}', {}, listUnit, dropout)\n"""
             .format(HPs.activationFunction.value, HPs.nFullLayers.value))
@@ -73,7 +74,7 @@ def writeFileBbPynomad(modelType, HPs, dim):
 ### MAIN ###
 if __name__ == '__main__':
 
-    modelType = "fcc"
+    modelType = "cnn"
     dataSet = "fashion"
 
     budget = 30 #MAX_BB_EVAL
@@ -148,7 +149,7 @@ if __name__ == '__main__':
         print(params)
         print()
 
-        writeFileBbPynomad(modelType, HPs, dim)
+        writeFileBbPynomad(modelType, dataSet, HPs, dim)
 
         import bbPynomad
         

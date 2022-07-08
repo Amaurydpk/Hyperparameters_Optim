@@ -9,7 +9,7 @@ EPOCHS = 100
 NUM_WORKERS = 4
 
 PRINT = False
-DEFAULT_OPTIMIZER_SETTINGS = True
+DEFAULT_OPTIMIZER_SETTINGS = False
 
 # Fashion MNIST --------------------------------------------
 INPUT_SIZE_FASHION = 28  # size image 28*28 
