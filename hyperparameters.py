@@ -156,7 +156,7 @@ class setHyperparams:
         :param (str) model: "cnn" or "fcc"
         """
 
-        self.batchSize = Hyperparam('batchSizeExponent', 'int', [4, 9])
+        self.batchSizeExponent = Hyperparam('batchSizeExponent', 'int', [4, 9])
 
         if model == "cnn":
             self.nConvolutionalLayers = Hyperparam('nConvolutionalLayers', 'int', [1, 3], isMeta=True)
@@ -165,7 +165,7 @@ class setHyperparams:
 
         self.activationFunction = Hyperparam('activationFunction', 'cat', ['ReLU', 'Sigmoid', 'Tanh'])
 
-        self.dropout = Hyperparam('dropout', 'real', [0.2, 0.5])
+        self.dropout = Hyperparam('dropout', 'real', [0, 1])
 
         self.learningRateExponent = Hyperparam('learningRateExponent', 'int', [-5, -1])
 
@@ -235,19 +235,20 @@ if __name__ == '__main__':
     # S = setHyperparams("fcc")
     # S.display()
     # print()
-    P = setHyperparams("cnn")
+   # P = setHyperparams("cnn")
     #P.display()
-    P.setRandom()
-    P.display()
-    # print(P.optimizer.children)
+    #P.setRandom()
+    #P.display()
+    
+    HPs = setHyperparams(model="fcc")
+    HPs.display()
     print()
-    print(P.getHPsOfType(meta=False, hpType='real'))
-    # print(P.optimizer.getChildrenValues())
-    # print(P.nConvolutionalLayers.children)
-    # print()
-    # print(P.nConvolutionalLayers.getChildrenValues())
-    
-    
+    MetaAndCatHPs = HPs.getHPsOfType(meta=True, hpType='all') + HPs.getHPsOfType(meta=False, hpType='cat')
+    for hp in MetaAndCatHPs:
+        hp.setRandomValue()
+    HPs.display()
+        
+  
 
  
 

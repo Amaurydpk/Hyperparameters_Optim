@@ -1,22 +1,35 @@
 import sys
 import torch
 from trainTest import train, accuracy
-from loadFashionMnist import loadFashionMNIST
-from models import FullyConnectedNeuralNet, ConvNeuralNet
-from constants import EPOCHS, INPUT_SIZE_FASHION, INPUT_CHANNELS_FASHION, NUM_CLASSES_FASHION, INPUT_CHANNELS_CIFAR, INPUT_SIZE_CIFAR, NUM_CLASSES_CIFAR
+from loadCifar10 import loadCIFAR10
+from constants import EPOCHS, INPUT_CHANNELS_CIFAR, INPUT_SIZE_CIFAR, NUM_CLASSES_CIFAR
+from models import ConvNeuralNet
 
-def bb(listUnit, dropout, lrExponent):
-	trainLoader, validLoader, testLoader = loadFashionMNIST()
-	model = FullyConnectedNeuralNet(INPUT_SIZE_FASHION*INPUT_SIZE_FASHION*INPUT_CHANNELS_FASHION, NUM_CLASSES_FASHION, 'ReLU', 2, listUnit, dropout)
+def bb(batchSizeExponent, listConvol, listUnit, lrExponent, dropout):
+	trainLoader, validLoader, testLoader = loadCIFAR10(batchSize=2**batchSizeExponent)
+	inputSize, inputChannel, numClasses = INPUT_SIZE_CIFAR, INPUT_CHANNELS_CIFAR, NUM_CLASSES_CIFAR
+	model = ConvNeuralNet(3, 
+                            3, 
+                            listConvol, 
+                            listUnit, 
+                            dropout, 
+                            'Tanh', 
+                            inputSize, 
+                            numClasses, 
+                            inputChannel)
 	gpuAvailable = torch.cuda.is_available()
 	device = torch.device("cuda" if gpuAvailable else "cpu")
 	model = model.to(device)
-	model = train(model, trainLoader, validLoader, device, EPOCHS, 'Adam', lrExponent)
+	try:
+		model = train(model, trainLoader, validLoader, device, EPOCHS, 'ASGD', lrExponent)
+	except Exception as e:
+		print("Stopped because error : "+ str(e))
+		return 0
 	return -(accuracy(model, testLoader, device)[0])
 
 def bbPynomad(x):
 	try:
-		f = bb([int(x.get_coord(0)), int(x.get_coord(1))], x.get_coord(2), x.get_coord(3), x.get_coord(4))
+		f = bb(int(x.get_coord(0)), [(int(x.get_coord(1)), int(x.get_coord(2)), int(x.get_coord(3)), int(x.get_coord(4)), int(x.get_coord(5))), (int(x.get_coord(6)), int(x.get_coord(7)), int(x.get_coord(8)), int(x.get_coord(9)), int(x.get_coord(10))), (int(x.get_coord(11)), int(x.get_coord(12)), int(x.get_coord(13)), int(x.get_coord(14)), int(x.get_coord(15)))], [int(x.get_coord(16)), int(x.get_coord(17)), int(x.get_coord(18))], int(x.get_coord(19)), x.get_coord(20))
 		x.setBBO(str(f).encode("UTF-8"))
 	except:
 		print("Unexpected eval error", sys.exc_info()[0])

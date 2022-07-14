@@ -2,7 +2,7 @@ import torch
 import torch.optim as optim
 import torch.optim.lr_scheduler as scheduler
 import time
-from constants import PRINT
+from constants import PRINT, EARLY_STOP
 
 
 def trainOneEpoch(model, trainLoader, optimizer, device):
@@ -108,13 +108,14 @@ def train(model, trainLoader, validLoader, device, nbEpochs, opt, learningRateEx
             bestModel = model
         
         # Early stopping
-        if (epoch >= nbEpochs/5) and (bestAcc < 20):
-            stop = True
-            if PRINT:
-                print("\tEarly stopped")
+        if EARLY_STOP:
+            if (epoch >= nbEpochs/5) and (bestAcc < 20):
+                stop = True
+                if PRINT:
+                    print("\tEarly stopped")
 
         # Scheduler
-        #sched.step(valLoss)
+        # sched.step(valLoss)
 
         epoch += 1
 
