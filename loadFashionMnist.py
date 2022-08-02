@@ -7,7 +7,7 @@ import matplotlib.cm as cm
 from constants import DATASET_DIR, VALID_RATIO, NUM_WORKERS
 
 
-torch.manual_seed(19)
+#torch.manual_seed(19)
 
 class DatasetTransformer(torch.utils.data.Dataset):
     """

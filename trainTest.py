@@ -63,7 +63,7 @@ def train(model, trainLoader, validLoader, device, nbEpochs, opt, learningRateEx
         elif opt == "RMSprop":
             optimizer = optim.RMSprop(model.parameters(), lr=learningRate, momentum=optimParams[0], alpha=optimParams[1], eps=optimParams[2])
     
-    #sched = scheduler.ReduceLROnPlateau(optimizer, 'min')
+    sched = scheduler.ReduceLROnPlateau(optimizer, 'min')
     
     bestAcc = 0
 
@@ -115,7 +115,7 @@ def train(model, trainLoader, validLoader, device, nbEpochs, opt, learningRateEx
                     print("\tEarly stopped")
 
         # Scheduler
-        # sched.step(valLoss)
+        sched.step(valLoss)
 
         epoch += 1
 

@@ -161,11 +161,11 @@ class setHyperparams:
         if model == "cnn":
             self.nConvolutionalLayers = Hyperparam('nConvolutionalLayers', 'int', [1, 3], isMeta=True)
         
-        self.nFullLayers = Hyperparam('nFullLayers', 'int', [1, 3], isMeta=True)
+        self.nFullLayers = Hyperparam('nFullLayers', 'int', [1, 5], isMeta=True)
 
         self.activationFunction = Hyperparam('activationFunction', 'cat', ['ReLU', 'Sigmoid', 'Tanh'])
 
-        self.dropout = Hyperparam('dropout', 'real', [0, 1])
+        self.dropout = Hyperparam('dropout', 'real', [0.2, 0.5])
 
         self.learningRateExponent = Hyperparam('learningRateExponent', 'int', [-5, -1])
 

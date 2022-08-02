@@ -8,8 +8,8 @@ from models import ConvNeuralNet
 def bb(batchSizeExponent, listConvol, listUnit, lrExponent, dropout):
 	trainLoader, validLoader, testLoader = loadCIFAR10(batchSize=2**batchSizeExponent)
 	inputSize, inputChannel, numClasses = INPUT_SIZE_CIFAR, INPUT_CHANNELS_CIFAR, NUM_CLASSES_CIFAR
-	model = ConvNeuralNet(3, 
-                            3, 
+	model = ConvNeuralNet(1, 
+                            7, 
                             listConvol, 
                             listUnit, 
                             dropout, 
@@ -29,7 +29,7 @@ def bb(batchSizeExponent, listConvol, listUnit, lrExponent, dropout):
 
 def bbPynomad(x):
 	try:
-		f = bb(int(x.get_coord(0)), [(int(x.get_coord(1)), int(x.get_coord(2)), int(x.get_coord(3)), int(x.get_coord(4)), int(x.get_coord(5))), (int(x.get_coord(6)), int(x.get_coord(7)), int(x.get_coord(8)), int(x.get_coord(9)), int(x.get_coord(10))), (int(x.get_coord(11)), int(x.get_coord(12)), int(x.get_coord(13)), int(x.get_coord(14)), int(x.get_coord(15)))], [int(x.get_coord(16)), int(x.get_coord(17)), int(x.get_coord(18))], int(x.get_coord(19)), x.get_coord(20))
+		f = bb(int(x.get_coord(0)), [(int(x.get_coord(1)), int(x.get_coord(2)), int(x.get_coord(3)), int(x.get_coord(4)), int(x.get_coord(5)))], [int(x.get_coord(6)), int(x.get_coord(7)), int(x.get_coord(8)), int(x.get_coord(9)), int(x.get_coord(10)), int(x.get_coord(11)), int(x.get_coord(12))], int(x.get_coord(13)), x.get_coord(14))
 		x.setBBO(str(f).encode("UTF-8"))
 	except:
 		print("Unexpected eval error", sys.exc_info()[0])

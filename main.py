@@ -2,6 +2,7 @@
 import torch
 from constants import MAX_BB_EVAL
 import time
+import datetime
 from math import ceil
 from blackBoxes import evaluateBlackbox
 from randomSearch import randomSearch
@@ -14,19 +15,21 @@ if __name__ == '__main__':
     
     t0 = time.time()
 
-    modelType = "fcc"
-    #modelType = "cnn"
+    #modelType = "fcc"
+    modelType = "cnn"
     dataSet = "fashion"
     #dataSet = "cifar-10"
     
     ## Random search
-    #randomSearch(evaluateBlackbox, modelType, dataSet, nbTrials=MAX_BB_EVAL)
+    for nTrial in [10, 20, 30, 40, 50, 60, 70, 80, 100]:
+        print(f"Nb trials: {nTrial}")
+        randomSearch(evaluateBlackbox, modelType, dataSet, nbTrials=MAX_BB_EVAL)
     
     ## Subproblems strategy
-    nTrials = 5
-    budgetByTrial = int(MAX_BB_EVAL / nTrials)
-    budgetLHbyTrial = ceil(budgetByTrial / 3) 
-    subproblemsNomad(modelType, dataSet, nTrials, budgetByTrial, budgetLHbyTrial)
+    # nTrials = 3
+    # budgetByTrial = 100 #int(MAX_BB_EVAL / nTrials)
+    # budgetLHbyTrial = 20 #ceil(budgetByTrial / 3) 
+    # subproblemsNomad(modelType, dataSet, nTrials, budgetByTrial, budgetLHbyTrial)
    
-    print("\nExecution time : " + str(int(time.time() - t0)) + " seconds")
+    print("\nExecution time : " + str(datetime.timedelta(seconds=int(time.time() - t0))))
    
