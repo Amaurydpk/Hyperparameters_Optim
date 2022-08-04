@@ -23,7 +23,7 @@ if __name__ == '__main__':
     ## Random search
     for nTrial in [10, 20, 30, 40, 50, 60, 70, 80, 100]:
         print(f"Nb trials: {nTrial}")
-        randomSearch(evaluateBlackbox, modelType, dataSet, nbTrials=MAX_BB_EVAL)
+        randomSearch(evaluateBlackbox, modelType, dataSet, nbTrials=nTrial)
     
     ## Subproblems strategy
     # nTrials = 3

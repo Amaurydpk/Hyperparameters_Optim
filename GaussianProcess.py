@@ -2,9 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 from scipy.stats.qmc import LatinHypercube
+from scipy.stats import norm
 
 
-def plotGP(X_train, y_train, X_test, y_test, y_pred, variance):
+def plotGP(X_train, y_train, X_test, y_test, y_pred, variance, figureName="fig"):
     fig, ax = plt.subplots(figsize=(7,5))
     ax.plot(X_test, y_test, 'r--', linewidth=2, label='Test Function')
     ax.plot(X_train, y_train, 'ro', markerfacecolor='r', markersize=8, label='Training Data')
@@ -18,14 +19,15 @@ def plotGP(X_train, y_train, X_test, y_test, y_pred, variance):
     ax.set_xlabel('x', fontsize=15)
     ax.set_ylabel('f(x)', fontsize=15)
     ax.legend(loc="best",prop={'size': 9})
-    plt.savefig('./images/Test_1D_results')
-    plt.show()
+    plt.savefig('./images/' + figureName)
+    #plt.show()
 
 
 # RBF kernel
-def squaredExponentialKernel(arg1, arg2, params=(1,1)):
-    sigma, length = params[0], params[1]
-    return sigma**2 * np.exp(-np.linalg.norm(arg1 - arg2)**2 / (2*length**2))
+def squaredExponentialKernel(arg1, arg2, params=(1,1,10**-8)):
+    sigma, length, noise = params[0], params[1], params[2]
+    deltakro = 1 if arg1 == arg2 else 0
+    return sigma**2 * np.exp(-np.linalg.norm(arg1 - arg2)**2 / (2*length**2)) + deltakro * noise
 
 
 # Gaussian process
@@ -66,7 +68,7 @@ class GP:
         K = self.calculateCovarianceMatrix(self.X, self.X, self.theta) #+ (1e-10 + self.noise) * np.eye(n)
         
         try:
-            L = np.linalg.cholesky(K + self.theta[-1] * np.eye(n))
+            L = np.linalg.cholesky(K) #+ 10**-10 * np.eye(n))
         except Exception as e:
             print(e)
             print(K)
@@ -88,7 +90,7 @@ class GP:
     def nofit(self, X_train, y_train):
         self.X = X_train
         self.y = y_train
-        self.theta = (1, 1, 10**-6) # the signal variance (simga_f), length scale (l) and noise variance (sigma_n)
+        self.theta = (1, 1, 10**-1) # the signal variance (simga_f), length scale (l) and noise variance (sigma_n)
     
 
     def fit(self, X_train, y_train, n_startingPoints=20):
@@ -96,8 +98,8 @@ class GP:
         self.X = X_train
         self.y = y_train
       
-        # Bounds for the signal variance (simga_f), length scale (l) and noise variance (sigma_n)
-        bounds = [(0, 10), (10**-2, 10**2), (10**-8, 10**-1)]
+        # Bounds for the signal variance (sigma_f), length scale (l) and noise variance (sigma_n)
+        bounds = [(1, 1), (10**-5, 10**5), (10**-8, 10**-1)]
         n_params = 3
 
         #best_theta = self.theta
@@ -132,7 +134,7 @@ class GP:
         # Scale random samples to the given bounds 
         initial_points = np.zeros(lhs.shape)
         for i in range(n_params):
-            lb, ub= bounds[i]
+            lb, ub = bounds[i]
             initial_points[:,i] = (ub-lb) * lhs[:,i] + lb
 
         # Run local optimizer on all points
@@ -148,8 +150,15 @@ class GP:
 
         #print(opt_para, opt_func)
         print("Best theta:" + str(self.theta))
+    
 
-        
+    def updatePosterior(self, xNew, f):
+        self.X = np.concatenate((self.X, xNew))
+        self.y = np.concatenate((self.y, f(xNew)))
+        self.fit(self.X, self.y)
+        #self.nofit(self.X, self.y)
+
+
     def predict(self, X_test):
         """
         GP model predicting
@@ -162,7 +171,7 @@ class GP:
         # Correlation matrix between X_test and X_test
         K_2star = self.calculateCovarianceMatrix(X_test, X_test, self.theta)
 
-        L = np.linalg.cholesky(K + self.theta[-1] * np.eye(n))
+        L = np.linalg.cholesky(K) #+ 10**-10 * np.eye(n))
         # Mean prediction
         alpha = np.linalg.solve(L.T, np.linalg.solve(L, self.y))
         mu_pred = np.dot(K_star.T, alpha)
@@ -189,6 +198,8 @@ class GP:
         return RMSE
 
 
+
+
 ### MAIN ###
 if __name__ == '__main__':
     
@@ -199,8 +210,8 @@ if __name__ == '__main__':
     #f = lambda x: 100*(x**2 * np.exp(-x**2))
     f = lambda x: (x*6-2)**2*np.sin(x*12-4)
 
-    domain = (1, 2)
-    n1 = 5 # Number of points to condition on (training points)
+    domain = (-1, 1)
+    n1 = 4 # Number of points to condition on (training points)
     n2 = 100  # Number of points in posterior (test points)
     
     # Training data
@@ -210,6 +221,7 @@ if __name__ == '__main__':
 
     # Testing data
     X_test = np.linspace(domain[0], domain[1], n2).reshape(-1,1)
+    # etre sur qu'on a pas de x_train dedans
     y_test = f(X_test)
 
     # GP model training
@@ -227,10 +239,22 @@ if __name__ == '__main__':
     #             )
     # )
 
-    print("RMSE: " + str(gp.score(X_test, y_test)))
+    # print("RMSE: " + str(gp.score(X_test, y_test)))
 
-    # Plot
-    plotGP(X_train, y_train, X_test, y_test, y_pred, variance)
+    # # Plot
+    plotGP(X_train, y_train, X_test, y_test, y_pred, variance, figureName="before")
+
+    # Test add points
+
+    for i in range(3):
+        xNew = np.random.uniform(domain[0], domain[1], size=(1,1))
+        gp.updatePosterior(xNew, f)
+        y_pred, sigma_pred, variance = gp.predict(X_test)
+        print("RMSE: " + str(gp.score(X_test, y_test)))
+        # Plot
+        plotGP(gp.X, gp.y, X_test, y_test, y_pred, variance, figureName="after")
+
+    plt.show()
    
 
 

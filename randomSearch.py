@@ -20,8 +20,6 @@ def randomSearch(blackBox, modelType="fcc", dataSet="fashion", nbTrials=MAX_BB_E
     bestIndex = 0
     HPs = setHyperparams(modelType) # initialize a set of HPs
     for i in range (nbTrials):
-        print("============ Trial {} ============".format(i+1))
-        print("--- Hyperparameters ---")
         HPs.setRandom()
         trials.append(HPs)
         accuracy = blackBox(HPs, modelType, dataSet) # evaluate the model
@@ -29,6 +27,8 @@ def randomSearch(blackBox, modelType="fcc", dataSet="fashion", nbTrials=MAX_BB_E
         if accuracy >= accuracies[bestIndex]: # record the index if we improve accuracy
             bestIndex = i
         if PRINT:
+            print("============ Trial {} ============".format(i+1))
+            print("--- Hyperparameters ---")
             HPs.display()
             print("\n> Training & Testing ...")
             print("\nAccuracy on test set = {}\n".format(round(accuracy, 3)))
