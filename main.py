@@ -17,11 +17,11 @@ if __name__ == '__main__':
 
     #modelType = "fcc"
     modelType = "cnn"
-    dataSet = "fashion"
-    #dataSet = "cifar-10"
+    #dataSet = "fashion"
+    dataSet = "cifar-10"
     
     ## Random search
-    for nTrial in [10, 20, 30, 40, 50, 60, 70, 80, 100]:
+    for nTrial in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
         print(f"Nb trials: {nTrial}")
         randomSearch(evaluateBlackbox, modelType, dataSet, nbTrials=nTrial)
     

@@ -69,8 +69,8 @@ def expectedImprovement(X, gp, currentBestEval, xi=0.01):
     Computes the EI at points X using a Gaussian process surrogate model.
     """
     mu, _, std = gp.predict(X)
-    #delta = mu - currentBestEval
-    delta = currentBestEval - mu - xi
+    #delta = mu - currentBestEval # Maximize
+    delta = currentBestEval - mu # Minimize
     z = delta / std
     ei = delta * norm.cdf(z) + std * norm.pdf(z)
     ei[std == 0.0] = 0.0
@@ -99,12 +99,12 @@ if __name__ == '__main__':
 
     # Define the true function that we want to regress on
     #f = lambda x: (x)        
-    f = lambda x: (x * np.sin(x))    
+    #f = lambda x: (x * np.sin(x))    
     #f = lambda x: (x + x**3)
-    #f = lambda x: 100*(x**2 * np.exp(-x**2))
-    #f = lambda x: (x*6-2)**2*np.sin(x*12-4)
+    #f = lambda x: -100*(x**2 * np.exp(-x**2))
+    f = lambda x: 1/2*(x*6-2)**2*np.sin(x*12-4)
     
-    domain = np.array([[-10, 10]])
+    domain = np.array([[1, 2]])
     n1 = 3 # Number of points to condition on (training points)
     n2 = 100  # Number of points in posterior (test points)
     
@@ -122,9 +122,9 @@ if __name__ == '__main__':
     
     X_sample, y_sample = X_init, y_init 
 
-    nIter = 10
+    nIter = 20
 
-    plt.figure(figsize=(12, nIter * 2))
+    plt.figure(figsize=(12, nIter * 3))
     plt.subplots_adjust(hspace=0.4) 
 
     for i in range(nIter):
@@ -148,7 +148,7 @@ if __name__ == '__main__':
         # Add sample to previous samples
         X_sample = np.vstack((X_sample, xNext))
         y_sample = np.vstack((y_sample, yNext))
-        plt.savefig('./images/' + "result2")
+        plt.savefig('./images/' + "result3")
     plt.show()
         
     
