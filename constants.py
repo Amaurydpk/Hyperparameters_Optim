@@ -10,6 +10,7 @@ EARLY_STOP = True
 NUM_WORKERS = 4
 
 PRINT = False
+PRINT_PYNOMAD = False
 DEFAULT_OPTIMIZER_SETTINGS = True
 
 # Fashion MNIST --------------------------------------------

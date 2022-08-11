@@ -3,20 +3,10 @@ import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 from scipy.stats.qmc import LatinHypercube
 from scipy.stats import norm
-from GaussianProcess import GP, plotGP
+#from GaussianProcess import GP, plotGP
+from BO_GP import GP
 
-#     ax.plot(X_test, y_test, 'r--', linewidth=2, label='Test Function')
-#     ax.plot(X_train, y_train, 'ro', markerfacecolor='r', markersize=8, label='Training Data')
-#     ax.plot(X_test, y_pred, 'b-', linewidth=2, label='GP Prediction')
-#     ax.fill_between(X_test.flatten(), 
-#                     y_pred - 1.96 * np.sqrt(variance), 
-#                     y_pred + 1.96 * np.sqrt(variance),
-#                     facecolor='lightgrey',
-#                     label='95% Credibility Interval')
-#     ax.tick_params(axis='both', which='major', labelsize=12)
-#     ax.set_xlabel('x', fontsize=15)
-#     ax.set_ylabel('f(x)', fontsize=15)
-#     ax.legend(loc="best",prop={'size': 9})
+
 
 def plot_approximation(gpr, X, Y, X_sample, Y_sample, X_next=None, show_legend=False):
     mu, _, std = gpr.predict(X)
@@ -42,14 +32,14 @@ def plot_acquisition(X, Y, X_next, show_legend=False):
 
 
 def plot_convergence(X_sample, Y_sample, n_init=2):
-    plt.figure(figsize=(12, 3))
+    plt.figure(figsize=(12, 5))
 
     x = X_sample[n_init:].ravel()
     y = Y_sample[n_init:].ravel()
     r = range(1, len(x)+1)
     
     x_neighbor_dist = [np.abs(a-b) for a, b in zip(x, x[1:])]
-    y_max_watermark = np.maximum.accumulate(y)
+    y_min_watermark = np.minimum.accumulate(y)
     
     plt.subplot(1, 2, 1)
     plt.plot(r[1:], x_neighbor_dist, 'bo-')
@@ -58,7 +48,7 @@ def plot_convergence(X_sample, Y_sample, n_init=2):
     plt.title('Distance between consecutive x\'s')
 
     plt.subplot(1, 2, 2)
-    plt.plot(r, y_max_watermark, 'ro-')
+    plt.plot(r, y_min_watermark, 'ro-')
     plt.xlabel('Iteration')
     plt.ylabel('Best Y')
     plt.title('Value of best selected sample')
@@ -98,14 +88,19 @@ def new_proposal(acquisition, gp, bounds, n_restart=25):
 if __name__ == '__main__':
 
     # Define the true function that we want to regress on
-    #f = lambda x: (x)        
-    #f = lambda x: (x * np.sin(x))    
-    #f = lambda x: (x + x**3)
-    #f = lambda x: -100*(x**2 * np.exp(-x**2))
-    f = lambda x: 1/2*(x*6-2)**2*np.sin(x*12-4)
+    # f = lambda x: (x)
+    # fNumber = 1        
+    f = lambda x: (x * np.sin(x))
+    fNumber = 2     
+    # f = lambda x: (x + x**3)
+    # fNumber = 3
+    # f = lambda x: -100*(x**2 * np.exp(-x**2))
+    # fNumber = 4
+    # f = lambda x: 1/2*(x*6-2)**2*np.sin(x*12-4)
+    # fNumber = 5
     
-    domain = np.array([[1, 2]])
-    n1 = 3 # Number of points to condition on (training points)
+    domain = np.array([[-2, 8]])
+    n1 = 2 # Number of points to condition on (training points)
     n2 = 100  # Number of points in posterior (test points)
     
     # Training data
@@ -122,7 +117,7 @@ if __name__ == '__main__':
     
     X_sample, y_sample = X_init, y_init 
 
-    nIter = 20
+    nIter = 8
 
     plt.figure(figsize=(12, nIter * 3))
     plt.subplots_adjust(hspace=0.4) 
@@ -148,8 +143,12 @@ if __name__ == '__main__':
         # Add sample to previous samples
         X_sample = np.vstack((X_sample, xNext))
         y_sample = np.vstack((y_sample, yNext))
-        plt.savefig('./images/' + "result3")
-    plt.show()
+        plt.savefig('./images/' + f"Fun{fNumber}_Run_Init{n1}_Iter{nIter}")
+    
+    plot_convergence(X_sample, y_sample, n_init=n1)
+    plt.savefig('./images/' + f"Fun{fNumber}_Conv_Init{n1}_Iter{nIter}")
+    
+
         
     
 

@@ -21,15 +21,18 @@ if __name__ == '__main__':
     dataSet = "cifar-10"
     
     ## Random search
-    for nTrial in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
-        print(f"Nb trials: {nTrial}")
-        randomSearch(evaluateBlackbox, modelType, dataSet, nbTrials=nTrial)
+    # for nTrial in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
+    #     print(f"Nb trials: {nTrial}")
+    #     randomSearch(evaluateBlackbox, modelType, dataSet, nbTrials=nTrial)
     
     ## Subproblems strategy
-    # nTrials = 3
-    # budgetByTrial = 100 #int(MAX_BB_EVAL / nTrials)
-    # budgetLHbyTrial = 20 #ceil(budgetByTrial / 3) 
-    # subproblemsNomad(modelType, dataSet, nTrials, budgetByTrial, budgetLHbyTrial)
+    for n in [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]:
+        print(f"======== Nb trials: {n} =========")
+        nTrials = 2 if n <= 50 else 3
+        budgetByTrial = int(n / nTrials)
+        budgetLHbyTrial = ceil(budgetByTrial / 3)
+        subproblemsNomad(modelType, dataSet, nTrials, budgetByTrial, budgetLHbyTrial)
+        #print(nTrials, budgetByTrial, budgetLHbyTrial)
    
     print("\nExecution time : " + str(datetime.timedelta(seconds=int(time.time() - t0))))
    
