@@ -16,6 +16,9 @@ def subproblemsNomad(modelType, dataSet, nTrials, budgetByTrial, budgetLHbyTrial
     """
     memoryHPsCatMetaTested = [] # Memory to keep set of meta and categorical HPs already tested
     bestScore = 0
+    bestTrialsInfo = {"metaAndCatHPsValue": [], 
+                    "nameStandardHPs": [], 
+                    "xBest": []}
     HPs = setHyperparams(model=modelType)
     # Meta and categorical HPs to be fixed 
     MetaAndCatHPs = HPs.getHPsOfType(meta=True, hpType='all') + HPs.getHPsOfType(meta=False, hpType='cat')
@@ -48,6 +51,10 @@ def subproblemsNomad(modelType, dataSet, nTrials, budgetByTrial, budgetLHbyTrial
         lb, ub  = [], [] # Bounds
         # Standard variables (change at each trial because can be decreed by meta HPs)
         standardHPs = HPs.getHPsOfType(meta=False, hpType='int') + HPs.getHPsOfType(meta=False, hpType='real')
+        if HPs.optimizer.value == "ASGD": # inverse t0 and dropout
+            temp = standardHPs[-3]
+            standardHPs[-3] = standardHPs[-4]
+            standardHPs[-4] = temp
         nameStandardHPs = []
         first = True # Just to not have a space in BB_INPUT_TYPE for the first parameter
         for hp in standardHPs:
@@ -101,12 +108,12 @@ def subproblemsNomad(modelType, dataSet, nTrials, budgetByTrial, budgetLHbyTrial
                                 "xBest": xBest
                                 }
                 bestScore = fBest
+            
         except Exception as e:
             print("Stopped because error : "+ str(e))
-    
+       
     print("Meta and categorical HPs tested:")
     print(memoryHPsCatMetaTested)
-    
     # Display best HPs and score found
     print()
     print("####### BEST ########\n")

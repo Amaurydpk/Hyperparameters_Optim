@@ -3,7 +3,6 @@ from constants import MAX_BB_EVAL, PRINT
 
 #random.seed(19) # Set seed for reproducible results
 
-
 def randomSearch(blackBox, modelType="fcc", dataSet="fashion", nbTrials=MAX_BB_EVAL):
     """
     Performs a random search for hyperparameters optimizitation and display 
@@ -19,10 +18,14 @@ def randomSearch(blackBox, modelType="fcc", dataSet="fashion", nbTrials=MAX_BB_E
     trials, accuracies = [], []
     bestIndex = 0
     HPs = setHyperparams(modelType) # initialize a set of HPs
+
+    exe = open("Vaccuracies_{}_{}.txt".format(modelType, dataSet),'a')
+
     for i in range (nbTrials):
         HPs.setRandom()
         trials.append(HPs)
         accuracy = blackBox(HPs, modelType, dataSet) # evaluate the model
+        exe.write('{}, '.format(accuracy))
         accuracies.append(accuracy)
         if accuracy >= accuracies[bestIndex]: # record the index if we improve accuracy
             bestIndex = i

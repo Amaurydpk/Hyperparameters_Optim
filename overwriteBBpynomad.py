@@ -71,8 +71,12 @@ def writeFileBbPynomad(modelType, dataSet, HPs, dim):
     exe.write("""\texcept Exception as e:\n"""+
         """\t\tprint("Stopped because error : "+ str(e))\n"""+
         """\t\treturn 0\n""")
+    
+    exe.write("""\tacc = accuracy(model, testLoader, device)[0]\n""")
+    exe.write("""\texe = open("SuBaccuracies_{}_{}.txt",'a')\n""".format(modelType, dataSet))
+    exe.write("""\texe.write('{}, '.format(acc))\n""")
 
-    exe.write("""\treturn -(accuracy(model, testLoader, device)[0])\n\n""")
+    exe.write("""\treturn -acc\n\n""")
 
     # bb Pynomad CAN BE IMPROVE BUT WORKS    
     exe.write("""def bbPynomad(x):\n""" +
@@ -119,6 +123,7 @@ def writeFileBbPynomad(modelType, dataSet, HPs, dim):
     # dropout
     paramX += "x.get_coord({})".format(index)
     index += 1
+
 
     # params optimizer
     if HPs.optimizer.isMeta:

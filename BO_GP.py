@@ -200,8 +200,8 @@ class GP:
         opt_para = np.zeros((n_startingPoints, n_params)) # Record best parameters found for each starting points
         opt_func = np.zeros((n_startingPoints, 1)) # Record best value found for each starting points
         for i in range(n_startingPoints):
-            #res = minimize(self.negLikelihood, x0=initial_points[i,:], bounds=bounds, method='L-BFGS-B', jac=self.gradLogLikelihood)
-            res = minimize(self.negLikelihood, x0=initial_points[i,:], bounds=bounds, jac=self.gradLogLikelihood)
+            res = minimize(self.negLikelihood, x0=initial_points[i,:], bounds=bounds, method='L-BFGS-B', jac=self.gradLogLikelihood)
+            #res = minimize(self.negLikelihood, x0=initial_points[i,:], bounds=bounds, jac=self.gradLogLikelihood)
             opt_para[i,:] = res.x
             opt_func[i,:] = res.fun
         # Locate the optimum results and update theta

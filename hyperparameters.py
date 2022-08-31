@@ -244,9 +244,9 @@ if __name__ == '__main__':
     HPs.display()
     print()
     MetaAndCatHPs = HPs.getHPsOfType(meta=True, hpType='all') + HPs.getHPsOfType(meta=False, hpType='cat')
-    for hp in MetaAndCatHPs:
-        hp.setRandomValue()
-    HPs.display()
+    # for hp in MetaAndCatHPs:
+    #     hp.setRandomValue()
+    # HPs.display()
         
   
 

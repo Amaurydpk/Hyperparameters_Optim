@@ -2,7 +2,7 @@ import PyNomad
 import sys
 import torch
 from trainTest import train, accuracy
-from loadFashionMnist import loadDataSetFashionMNIST
+from loadFashionMnist import loadFashionMNIST
 from models import FullyConnectedNeuralNet
 from constants import EPOCHS, INPUT_SIZE_FASHION, NUM_CLASSES_FASHION
 import time
@@ -13,7 +13,7 @@ def bb(listUnit, dropout, lr, weightDecay, optimParam1, optimParam2):
     
     """
     # Load training, validation and testing sets formatted with the batch size
-    trainLoader, validLoader, testLoader = loadDataSetFashionMNIST()
+    trainLoader, validLoader, testLoader = loadFashionMNIST(32)
     # Construct model
     
     model = FullyConnectedNeuralNet(INPUT_SIZE_FASHION, NUM_CLASSES_FASHION, 'ReLU', 2, listUnit, dropout)

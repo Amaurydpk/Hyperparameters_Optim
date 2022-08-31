@@ -3,13 +3,13 @@ import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 from scipy.stats.qmc import LatinHypercube
 from scipy.stats import norm
-#from GaussianProcess import GP, plotGP
-from BO_GP import GP
+from xxhash import xxh64_intdigest
+from GaussianProcess import GP, plotGP
 
 
 
 def plot_approximation(gpr, X, Y, X_sample, Y_sample, X_next=None, show_legend=False):
-    mu, _, std = gpr.predict(X)
+    mu, std = gpr.predict(X)
     plt.fill_between(X.flatten(), 
                     mu - 1.96 * np.sqrt(std), 
                     mu + 1.96 * np.sqrt(std),
@@ -58,7 +58,7 @@ def expectedImprovement(X, gp, currentBestEval, xi=0.01):
     """
     Computes the EI at points X using a Gaussian process surrogate model.
     """
-    mu, _, std = gp.predict(X)
+    mu, std = gp.predict(X)
     #delta = mu - currentBestEval # Maximize
     delta = currentBestEval - mu # Minimize
     z = delta / std
@@ -91,33 +91,42 @@ if __name__ == '__main__':
     # f = lambda x: (x)
     # fNumber = 1        
     f = lambda x: (x * np.sin(x))
-    fNumber = 2     
+    # fNumber = 2     
     # f = lambda x: (x + x**3)
     # fNumber = 3
-    # f = lambda x: -100*(x**2 * np.exp(-x**2))
-    # fNumber = 4
-    # f = lambda x: 1/2*(x*6-2)**2*np.sin(x*12-4)
+    #f = lambda x: -100*(x**2 * np.exp(-x**2))
+    #fNumber = 4
+    #f = lambda x: 1/2*(x*6-2)**2*np.sin(x*12-4)
     # fNumber = 5
+    #f = lambda X, Y: (1-X)**2 + 100*(Y- X**2)**2
+    fNumber = 6
     
-    domain = np.array([[-2, 8]])
-    n1 = 2 # Number of points to condition on (training points)
+    domain = np.array([[2, 8]])
+    #domain = np.array([[-10, 2], [-1, 3]])
+    
+    #domain = np.array([[0, 10], [0, 10]])
+    ndim = len(domain)
+    n1 = 3 # Number of points to condition on (training points)
     n2 = 100  # Number of points in posterior (test points)
     
     # Training data
-    X_init = np.random.uniform(domain[:, 0], domain[:, 1], size=(n1,1))
-    #X_init = np.linspace(domain[:, 0], domain[:, 1], n1).reshape(-1,1)
+    #X_init = np.random.uniform(domain[:, 0], domain[:, 1], size=(n1,ndim))
+    X_init = (domain[:, 1] - domain[:, 0]) * LatinHypercube(ndim).random(n1) + domain[:, 0]
+    #X_init = np.linspace(domain[:, 0], domain[:, 1], n1)
+    #y_init = f(X_init[:, 0], X_init[:, 1])
     y_init = f(X_init)
-
+    
     # Testing data
-    X_test = np.linspace(domain[:, 0], domain[:, 1], n2).reshape(-1,1)
+    X_test = np.linspace(domain[:, 0], domain[:, 1], n2)
     y_test = f(X_test)
+    #y_test = f(X_test[:, 0], X_test[:, 1])
 
-    # GP model training
+    #GP model training
     gp = GP()
     
     X_sample, y_sample = X_init, y_init 
 
-    nIter = 8
+    nIter = 6
 
     plt.figure(figsize=(12, nIter * 3))
     plt.subplots_adjust(hspace=0.4) 
@@ -132,7 +141,7 @@ if __name__ == '__main__':
         yNext = f(xNext) # black box eval
         print(xNext, yNext)
 
-        # Plot samples, surrogate function, noise-free objective and next sampling location
+        #Plot samples, surrogate function, noise-free objective and next sampling location
         plt.subplot(nIter, 2, 2 * i + 1)
         plot_approximation(gp, X_test, y_test, X_sample, y_sample, xNext, show_legend=i==0)
         plt.title(f'Iteration {i+1}')
@@ -143,15 +152,10 @@ if __name__ == '__main__':
         # Add sample to previous samples
         X_sample = np.vstack((X_sample, xNext))
         y_sample = np.vstack((y_sample, yNext))
-        plt.savefig('./images/' + f"Fun{fNumber}_Run_Init{n1}_Iter{nIter}")
+        #plt.savefig('./images/' + f"Fun{fNumber}_Run_Init{n1}_Iter{nIter}")
+        plt.savefig('./images/' + "Runs")
     
     plot_convergence(X_sample, y_sample, n_init=n1)
-    plt.savefig('./images/' + f"Fun{fNumber}_Conv_Init{n1}_Iter{nIter}")
+    #plt.savefig('./images/' + f"Fun{fNumber}_Conv_Init{n1}_Iter{nIter}")
+    plt.savefig('./images/' + "Conv")
     
-
-        
-    
-
- 
-
-
