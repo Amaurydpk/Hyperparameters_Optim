@@ -3,12 +3,23 @@ import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 from scipy.stats.qmc import LatinHypercube
 from scipy.stats import norm
-from xxhash import xxh64_intdigest
-from GaussianProcess import GP, plotGP
-
+from GaussianProcess import GP
 
 
 def plot_approximation(gpr, X, Y, X_sample, Y_sample, X_next=None, show_legend=False):
+    """
+    Plot the GP regression (gpr) and the next point to explore in BO on the same figure
+   
+    :param (GP) gpr: the trained GP
+    :param (numpy.array) X: the X test set (point at which we want to predict)
+    :param (numpy.array) Y: the Y test set to plot the true test function
+    :param (numpy.array) X_sample: the X training set
+    :param (numpy.array) Y_sample: the value of the function at X_sample 
+    :param (numpy.array) X_next: the next point chosen by the BO
+    :param (bool) show_legend: a boolean to show or not the legend on figure
+
+    :return: None
+    """
     mu, std = gpr.predict(X)
     plt.fill_between(X.flatten(), 
                     mu - 1.96 * np.sqrt(std), 
@@ -25,13 +36,32 @@ def plot_approximation(gpr, X, Y, X_sample, Y_sample, X_next=None, show_legend=F
         plt.legend(loc="best")
 
 def plot_acquisition(X, Y, X_next, show_legend=False):
+    """
+    Plot the acquisition function and the next point to explore in BO on the same figure
+   
+    :param (numpy.array) X: the X points
+    :param (numpy.array) Y: the values of the axquisition functions at X
+    :param (numpy.array) X_next: the next point chosen by the BO
+    :param (bool) show_legend: a boolean to show or not the legend on figure
+
+    :return: None
+    """
     plt.plot(X, Y, 'g-', lw=1, label='Acquisition function')
     plt.axvline(x=X_next, ls='--', c='k', lw=1, label='Next sampling location')
     if show_legend:
         plt.legend(loc="best")  
 
 
-def plot_convergence(X_sample, Y_sample, n_init=2):
+def plot_convergence(X_sample, Y_sample, n_init):
+    """
+    Plot the convergence of the BO process based 
+   
+    :param (numpy.array) X_sample: the X training set
+    :param (numpy.array) Y_sample: the value of the function at X_sample 
+    :param (int) n_init: number of strating points
+
+    :return: None
+    """
     plt.figure(figsize=(12, 5))
 
     x = X_sample[n_init:].ravel()
@@ -54,13 +84,22 @@ def plot_convergence(X_sample, Y_sample, n_init=2):
     plt.title('Value of best selected sample')
 
 
-def expectedImprovement(X, gp, currentBestEval, xi=0.01):
+def expectedImprovement(X, gp, currentBestEval, minimization=True):
     """
-    Computes the EI at points X using a Gaussian process surrogate model.
+    Computes the EI at points X using a Gaussian process surrogate model
+   
+    :param (numpy.array) X_sample: the points we want to calculate 
+    :param (GP) gp: the trained Gaussian process
+    :param (float) currentBestEval: the current best function evaluation
+    :param (bool) minimization: True for minimization, False for maximization
+
+    :return: EI(X)
     """
     mu, std = gp.predict(X)
-    #delta = mu - currentBestEval # Maximize
-    delta = currentBestEval - mu # Minimize
+    if minimization: # Minimize
+        delta = currentBestEval - mu 
+    else: # Maximize
+        delta = mu - currentBestEval 
     z = delta / std
     ei = delta * norm.cdf(z) + std * norm.pdf(z)
     ei[std == 0.0] = 0.0
@@ -68,7 +107,16 @@ def expectedImprovement(X, gp, currentBestEval, xi=0.01):
 
 
 def new_proposal(acquisition, gp, bounds, n_restart=25):
+    """
+    Return the next point to explore by finding the maximum of the acquistion function
+   
+    :param (function) acquisition: acquisition function
+    :param (GP) gp: the trained Gaussian process
+    :param (array) bounds: the bounds of the problem
+    :param (int) n_restart: number of starting points to perform minimization
 
+    :return: (np.arrray) the next point to explore
+    """
     def min_obj(x):
         return -acquisition(x, gp, np.min(gp.y))
 
@@ -152,10 +200,8 @@ if __name__ == '__main__':
         # Add sample to previous samples
         X_sample = np.vstack((X_sample, xNext))
         y_sample = np.vstack((y_sample, yNext))
-        #plt.savefig('./images/' + f"Fun{fNumber}_Run_Init{n1}_Iter{nIter}")
         plt.savefig('./images/' + "Runs")
     
     plot_convergence(X_sample, y_sample, n_init=n1)
-    #plt.savefig('./images/' + f"Fun{fNumber}_Conv_Init{n1}_Iter{nIter}")
     plt.savefig('./images/' + "Conv")
     

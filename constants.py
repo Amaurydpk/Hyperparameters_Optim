@@ -1,4 +1,3 @@
-
 DATASET_DIR = "./data"
 VALID_RATIO = 0.2  # Going to use 80%/20% split for train/valid
 
@@ -11,7 +10,7 @@ NUM_WORKERS = 4
 
 PRINT = False
 PRINT_PYNOMAD = True
-DEFAULT_OPTIMIZER_SETTINGS = True
+DEFAULT_OPTIMIZER_SETTINGS = False
 
 # Fashion MNIST --------------------------------------------
 INPUT_SIZE_FASHION = 28  # size image 28*28 

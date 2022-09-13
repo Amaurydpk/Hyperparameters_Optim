@@ -1,9 +1,9 @@
 import random
-from typing import Tuple
 from constants import DEFAULT_OPTIMIZER_SETTINGS
 
 
 class Hyperparam():
+    """Class to define a hyperparameter"""
 
     def __init__(self, name, typ, range, isMeta=False):
         """
@@ -148,7 +148,7 @@ class Hyperparam():
 
 
 class setHyperparams:
-
+    """Class to define a set of hyperparameters"""
     def __init__(self, model):
         """
         Initialize a set of hyperparameters for a given model
@@ -226,9 +226,6 @@ class setHyperparams:
                 hp.printChildren()
 
 
-# TO DO: enelver les tuples dans la liste des params convolutionnel et essayer de traiter ça avec les numéros de couches
-
-
 
 ### MAIN ###
 if __name__ == '__main__':
@@ -240,7 +237,7 @@ if __name__ == '__main__':
     #P.setRandom()
     #P.display()
     
-    HPs = setHyperparams(model="fcc")
+    HPs = setHyperparams(model="cnn")
     HPs.display()
     print()
     MetaAndCatHPs = HPs.getHPsOfType(meta=True, hpType='all') + HPs.getHPsOfType(meta=False, hpType='cat')

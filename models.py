@@ -170,10 +170,7 @@ class ConvNeuralNet(nn.Module):
         return x
 
 
-    def get_input_size_first_lin_layer(self):                                                                                   
-        """                                                                                                                     
-        :return: current_size                                                                                                   
-        """                                                                                                                     
+    def get_input_size_first_lin_layer(self):                                                                                                                                                                                                      
         current_size = self.init_im_size                                                                                        
         for i in range(self.num_conv_layers):                                                                                   
             temp = (current_size - self.param_conv[i][1] + 2 * self.param_conv[i][3]) / self.param_conv[i][2] + 1               

@@ -5,46 +5,42 @@ from scipy.optimize import minimize
 from scipy.stats.qmc import LatinHypercube
 from scipy.stats import norm
 from scipy.linalg import solve_triangular, cho_solve, cho_factor
-import sys
 
 
 def display2D(X1, X2, Z, X_train, y_train, title):
+    """
+    Display the GP regression in 2D
+   
+    :param (np.array) X1: coords X1
+    :param (np.array) X2: coords X2
+    :param (np.array) Z: f(X1, X2)
+    :param (np.array) X_train: training set
+    :param (np.array) y_train: f(X_train)
+    :param (str) title: figure title
+
+    :return: (None)
+    """
     X1, X2 = np.meshgrid(X1, X2)
-    #Z = f(X1, X2)
     fig = plt.figure(figsize=plt.figaspect(0.3))
     fig.suptitle(title)
     # first subplot
     ax = fig.add_subplot(1, 2, 1)
     ax.contour(X1, X2, Z)
     ax.scatter(X_train[:,0], X_train[:,1], y_train, c="black", label="Training points")
-    #ax.scatter(, c='r', label='Training Data')
     # second subplot
     ax = fig.add_subplot(1, 2, 2, projection='3d')
     # plot surface
     surf = ax.plot_surface(X1, X2, Z, cmap=cm.coolwarm, linewidth=0, antialiased=True)
     ax.scatter(X_train[:,0], X_train[:,1], y_train, c="black", s=200, label="Training points")
-    # Customize the z axis
-    #ax.zaxis.set_major_locator(LinearLocator(10))
-    #ax.zaxis.set_major_locator(FormatStrFormatter('%.02f')))
     # add a color bar which maps values to colors
     fig.colorbar(surf, shrink=0.5, aspect=5)
     plt.legend()
 
 
-def display2Dv2(X1, X2, Z_true, Z_pred, X_train, y_train):
-    X1, X2 = np.meshgrid(X1, X2)
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
-    # plot surface
-    surf = ax.plot_surface(X1, X2, Z_true, linewidth=0, antialiased=True, label="Objective function") #alpha=0.5)
-    surf = ax.plot_surface(X1, X2, Z_pred, linewidth=0, antialiased=True, label="Prediction")
-    ax.scatter(X_train[:,0], X_train[:,1], y_train, c="black", s=100, label="Training points")
-    # add a color bar which maps values to colors
-    #fig.colorbar(surf, shrink=0.5, aspect=5)
-    #plt.legend()
-
-
 class StandardNormalization():
+    """
+    Class to perform standard normalization
+    """
     def __init__(self, tab):
         self.tab = tab
         self.mean = np.mean(self.tab)
@@ -58,6 +54,9 @@ class StandardNormalization():
 
 
 class MinMaxNormalization():
+    """
+    Class to perform min-max normalization
+    """
     def __init__(self, tab):
         self.tab = tab
         self.min = np.min(self.tab)
@@ -69,9 +68,21 @@ class MinMaxNormalization():
     def inv_transform(self, scaledTab):
         return scaledTab * (self.max - self.min) + self.min
 
-        
 
 def plotGP(X_train, y_train, X_test, y_test, y_pred, variance, figureName="fig"):
+    """
+    Plot GP in 1D
+
+    :param (np.array) X_train: training set
+    :param (np.array) y_train: f(X_train)
+    :param (np.array) X_test: test set
+    :param (np.array) y_test: f(X_test)
+    :param (np.array) y_pred: mean prediction of the gp
+    :param (np.array) variance: variance prediction of the gp
+    :param (str) figureName: figure title
+
+    :return: (None)
+    """
     fig, ax = plt.subplots(figsize=(7,5))
     ax.plot(X_test, y_test, 'r--', linewidth=2, label='Test Function')
     ax.plot(X_train, y_train, 'ro', markerfacecolor='r', markersize=8, label='Training Data')
@@ -85,26 +96,23 @@ def plotGP(X_train, y_train, X_test, y_test, y_pred, variance, figureName="fig")
     ax.set_xlabel('x', fontsize=15)
     ax.set_ylabel('f(x)', fontsize=15)
     ax.legend(loc="best",prop={'size': 9})
-    #plt.savefig('./images/' + figureName)
-    #plt.show()
 
 
-# RBF kernel
 def squaredExponentialKernel(X1, X2, params=(1, 1)):
+    """
+    Return the covariance matrix between X1 and X2 computed with RBF kernel
 
-    # X1 (n1 x d) : Array of n1 points, where each point has dim d : array of line vectors
-    # X2 (n2 x d) : Array of n2 points, where each point has dim d : array of line vectors
+    :param (np.array) X1: (n1 x d) Array of n1 points, where each point has dim d : array of line vectors
+    :param (np.array) X2: (n2 x d) Array of n2 points, where each point has dim d : array of line vectors
+    :param (tuple) params: kernel parameters 
+        (Higher values of length parameter are linked to more biais model)
+        (Lower values of length parameter are linked to flexible (wiggly))
 
-    # Higher values of length parameter are linked to more biais model
-    # Lower values of length parameter are linked to flexible (wiggly)
-
+    :return: (np.array) the covariance matrix
+    """
     sigma, length = params[0], params[1]
-
     # Good method to work with the length-parameters (one l per variable) in the n-dim case
     K = np.zeros((X1.shape[0], X2.shape[0]))
-    # for i in range(X1.shape[0]):
-    #     K[i, :] = sigma**2 * np.exp(-np.sum((1/(2*length**2)) * (X1[i, :] - X2) ** 2, axis=1))
-    # return K
     for i, x1 in enumerate(X1):
         for j, x2 in enumerate(X2):
             K[i, j] = sigma**2 * np.exp(-np.sum((1/(2*length**2)) * (x1 - x2) ** 2))
@@ -114,26 +122,26 @@ def squaredExponentialKernel(X1, X2, params=(1, 1)):
 
 # Gaussian process
 class GP:
+    """
+    Class for Gaussian process regression
+    """
 
     def __init__(self, covarianceFunction=squaredExponentialKernel):
         """
-            Initialize a Gaussian Process model
-            n_restarts: number of restarts of the local optimizer
-            
+        Initialize a Gaussian Process model wtih a covariance function  
         """  
         self.covFunction = covarianceFunction
         self.X = None 
         self.y = None
-
-        # self.K : TODO
-        # self.L : TODO
-        # self.alpha : TODO
 
         self.theta = None
         # self.theta_low_bds : TODO
         # self.theta_up_bds : TODO
 
     def negLikelihood(self, theta):
+        """
+        Return the negative likelihood
+        """
         self.theta = theta
         n = self.X.shape[0]  # Number of training instances
 
@@ -156,6 +164,9 @@ class GP:
     
 
     def gradLogLikelihood(self, theta):
+        """
+        Returns the gradients of the marginal likelihood
+        """
         self.theta = theta
         dlogtheta = np.zeros(3)
         n = self.X.shape[0] 
@@ -177,16 +188,11 @@ class GP:
         dlogtheta[2] = 1/2 * np.trace(np.dot(alphaAlphaKinv, 2 * sigmaN * np.eye(n)))
         return -dlogtheta
 
-    def bbPynomad(self, x):
-        try:
-            f = self.negLikelihood([x.get_coord(0), x.get_coord(1), x.get_coord(2)])
-            x.setBBO(str(f).encode("UTF-8"))
-        except:
-            print("Unexpected eval error", sys.exc_info()[0])
-            return 0
-        return 1  # 1: success 0: failed evaluation
 
     def fit(self, X_train, y_train, n_startingPoints=50):
+        """
+        Perfoms the GP fitting 
+        """
 
         self.X = X_train 
         self.y = y_train
@@ -217,19 +223,20 @@ class GP:
             res = minimize(self.negLikelihood, x0=initial_points[i,:], bounds=bounds, jac=self.gradLogLikelihood)
             opt_para[i,:] = res.x
             opt_func[i,:] = res.fun
-
         # Locate the optimum results and update theta
         self.theta = opt_para[np.argmin(opt_func), :]
         print("Best theta:" + str(self.theta))
-
         self.X, self.y = scal_X.inv_transform(self.X), scal_y.inv_transform(self.y)
 
+
     def updatePosterior(self, xNew, fxNew):
+        """
+        Update the GP with new point
+        """
         self.X = np.concatenate((self.X, xNew), axis=0)
         self.y = np.concatenate((self.y, fxNew), axis=0)
-        #self.X = np.vstack((self.X, xNew))
-        #self.y = np.vstack((self.y, f(xNew)))
         self.fit(self.X, self.y)
+
 
     def predict(self, X_test):
         """
@@ -275,15 +282,7 @@ class GP:
         return mu_pred.flatten(), variance
 
     def score(self, X_test, y_test):
-        """Calculate root mean squared error
-        Input
-        -----
-        X_test: test set, array of shape (n_samples, n_features)
-        y_test: test labels, array of shape (n_samples, )
-        
-        Output
-        ------
-        RMSE: the root mean square error"""
+        """Calculate root mean squared error between true y_test and y from prediction"""
         y_pred, _ = self.predict(X_test)
         RMSE = np.sqrt(np.mean((y_pred - y_test)**2))
         return RMSE
@@ -295,40 +294,40 @@ if __name__ == '__main__':
     #Define the true function that we want to regress on
     # 1D
     # f = lambda x: (x)
-    #f = lambda x: (x * np.sin(x))
+    f = lambda x: (x * np.sin(x))
     #f = lambda x: (x + x**3)
     #f = lambda x: 100*(x**2 * np.exp(-x**2))
     #f = lambda x: (x*6-2)**2*np.sin(x*12-4)
     #f = lambda X, Y: (X**2 + Y**2) * (np.sin(X)- np.cos(Y))
-    f = lambda X, Y: (1-X)**2 + 100*(Y- X**2)**2
+    #f = lambda X, Y: (1-X)**2 + 100*(Y- X**2)**2
     
-    #domain = np.array([[0, 9]])
-    domain = np.array([[-2, 2], [-1, 3]])
+    domain = np.array([[0, 9]])
+    #domain = np.array([[-2, 2], [-1, 3]])
     ndim = len(domain)
 
-    n1 = 15 # Number of points to condition on (training points)
-    n2 = 20  # Number of points in posterior (test points)
+    n1 = 3 # Number of points to condition on (training points)
+    n2 = 50  # Number of points in posterior (test points)
     
     # Training data
     # 1D
     #X_train = np.random.uniform(domain[:, 0], domain[:, 1], size=(n1,ndim))
     #X_train = np.linspace(domain[:, 0], domain[:, 1], n1)
     X_train = (domain[:, 1] - domain[:, 0]) * LatinHypercube(ndim).random(n1) + domain[:, 0]
-    #y_train = f(X_train)
+    y_train = f(X_train)
     # 2D
-    y_train = f(X_train[:, 0], X_train[:, 1])
+    #y_train = f(X_train[:, 0], X_train[:, 1])
 
     # Testing data
     # 1D
-    #X_test = np.linspace(domain[:, 0], domain[:, 1], n2)
-    #y_test = f(X_test)
+    X_test = np.linspace(domain[:, 0], domain[:, 1], n2)
+    y_test = f(X_test)
     # 2D
-    X_test_init = np.linspace(domain[:, 0], domain[:, 1], n2)
-    X1, X2 = np.meshgrid(X_test_init[:, 0], X_test_init[:, 1])
-    X_test = np.hstack((X1.reshape(-1,1), X2.reshape(-1,1)))
-    y_test = f(X_test[:, 0], X_test[:, 1])
+    # X_test_init = np.linspace(domain[:, 0], domain[:, 1], n2)
+    # X1, X2 = np.meshgrid(X_test_init[:, 0], X_test_init[:, 1])
+    # X_test = np.hstack((X1.reshape(-1,1), X2.reshape(-1,1)))
+    # y_test = f(X_test[:, 0], X_test[:, 1])
 
-    display2D(X_test_init[:, 0], X_test_init[:, 1], y_test.reshape(n2, n2), X_train, y_train, "Objective function")
+    #display2D(X_test_init[:, 0], X_test_init[:, 1], y_test.reshape(n2, n2), X_train, y_train, "Objective function")
 
     #GP model training
     gp = GP()
@@ -336,11 +335,10 @@ if __name__ == '__main__':
     #GP model predicting
     y_pred, variance = gp.predict(X_test)
 
-    display2D(X_test_init[:, 0], X_test_init[:, 1], y_pred.reshape(n2, n2), X_train, y_train, "Prediction")
-    #display2Dv2(X_test_init[:, 0], X_test_init[:, 1], y_test.reshape(n2, n2), y_pred.reshape(n2, n2), X_train, y_train)
+    #display2D(X_test_init[:, 0], X_test_init[:, 1], y_pred.reshape(n2, n2), X_train, y_train, "Prediction")
 
-    #Plot
-    #plotGP(X_train, y_train, X_test, y_test, y_pred, variance, figureName="before")
+    # Plot
+    plotGP(X_train, y_train, X_test, y_test, y_pred, variance, figureName="before")
 
     # #Test add points
     # for i in range(3):

@@ -73,8 +73,6 @@ def writeFileBbPynomad(modelType, dataSet, HPs, dim):
         """\t\treturn 0\n""")
     
     exe.write("""\tacc = accuracy(model, testLoader, device)[0]\n""")
-    exe.write("""\texe = open("SuBaccuracies_{}_{}.txt",'a')\n""".format(modelType, dataSet))
-    exe.write("""\texe.write('{}, '.format(acc))\n""")
 
     exe.write("""\treturn -acc\n\n""")
 
