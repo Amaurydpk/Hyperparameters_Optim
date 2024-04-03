@@ -59,8 +59,11 @@ $
 $$\frac{d\psi_g}{dt}=\sqrt{V_{g,N}^2+V_{g,E}^2}\cdot\frac{\sin\psi_g\cdot\tan\delta}{R_e+z_{Geo}}$$
 - computing the bank angle from the moment equation:
 $$
-\tan\phi=\frac{V_g}{g\cdot\cos\theta_c}\cdot\frac{d\psi_{g}}{dt}+\left(\left(\frac{dV_a}{dt}\cdot{V_a}-g\cdot{V_{a,D}}+\mathbf{\frac{dW}{dt}}\cdot\mathbf{V_a}\right)\cdot\frac{\sqrt{V_a^2-V_{a,D}^2}}{V_a}+{g}\cdot{V_{a,D}}\right)\cdot\frac{\tan\theta_c}{g\cdot V_a} 
+\tan\phi=\frac{V_g}{g\cdot\cos\theta_c}\cdot\frac{d\psi_{g}}{dt}+\left(\left(\frac{dV_a}{dt}\cdot{V_a}-g\cdot{V_{a,D}}+\frac{dW}{dt}\cdot\mathbf{V_a}\right)\cdot\frac{\sqrt{V_a^2-V_{a,D}^2}}{V_a}+{g}\cdot{V_{a,D}}\right)\cdot\frac{\tan\theta_c}{g\cdot V_a}
 $$ 
+
+
+
 where $\theta_c=\psi_g-\psi_a$ and $\psi_a=\arctan\frac{V_{a,E}}{V_{a,N}}$
 - computing the lift from the lift equation:
 $$L = \frac{m\cdot{g}\cdot{\cos\gamma_a}}{\cos\phi} = \frac{1}{2}\cdot\rho\cdot{V_a^2}\cdot{S_{ref}}\cdot{C_L}$$
