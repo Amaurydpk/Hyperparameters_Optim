@@ -74,7 +74,7 @@ $$Thr=D+m\cdot\left(\frac{dV_a}{dt}-g\cdot{\frac{V_{a,D}}{V_a}}+\frac{1}{V_a}\cd
 
 the saving was integrated as a vertical wind component in the final thrust equation above:
 $$
-Thr=D+m\cdot\left(\frac{dV_a}{dt}-g\cdot{\frac{V_{a,D}}{V_a}}+\frac{1}{V_a}\cdot\mathbf{\frac{dW}{dt}}\cdot\mathbf{V_a} \right)-m\cdot g\cdot{\frac{W^{saving}_{D}}{V_a}}
+Thr = D + m \cdot \left(\frac{dV_a}{dt} - g \cdot \frac{V_{a,D}}{V_a} + \frac{1}{V_a} \cdot \mathbf{\frac{dW}{dt}} \cdot \mathbf{V_a} \right) - m \cdot g \cdot \frac{K_{saving} \cdot V_a \cdot \frac{D}{L}}{V_a}
 $$
 with 
 $$
