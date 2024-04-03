@@ -37,8 +37,7 @@
 In CRUISE_SPEED mode, the equilibrium point is determined at aircraft state $(time, latitude, longitude, z_p, V_a, m, \psi_g)$ by:
 - calling the atmospheric model to get $(Ts,Ps,\mathbf{W}, \mathbf{grad}(Ts),\mathbf{grad}(Ps),\mathbf{grad}(\mathbf{W}))$
 - computing $\mathbf{V_a}$ and $\mathbf{V_g}$ knowing that $\frac{dz_p}{dt}|_{Tgt}=0$
-$$
-\left\{
+$$\left\{
 \begin{array}{ll}
 V_{g,H}=&\frac{W_N\cdot\cos(\psi_g)+W_E\cdot\sin\psi_g+a_0\cdot(v_0-W_D)}{1+a_0^2}\\
 &é\sqrt{\left(\frac{W_N\cdot\cos(\psi_g)+W_E\cdot\sin\psi_g+a_0\cdot(v_0-W_D)}{1+a_0^2}\right)^2+\frac{V_a^2-(W_N^2+W_E^2+(v_0-W_D)^2)}{1+a_0^2}}\\
@@ -46,8 +45,7 @@ V_{g,N}=&V_{g,H}\cdot\cos(\psi_g)\\
 V_{g,E}=&V_{g,H}\cdot\sin(\psi_g)\\
 V_{g,D}=&v_0-V_{g,H}\cdot{a_0}\\
 \end{array}
-\right
-$$
+\right$$
 with $v_0=\frac{\frac{dz_p}{dt}|_{Tgt}-\frac{\partial{z_p}}{\partial{t}}}{\frac{\partial{z_p}}{\partial{x_D}}}, a_0=\frac{\frac{\partial{z_p}}{\partial{x_N}}\cdot\cos(\psi_g)+\frac{\partial{z_p}}{\partial{x_E}}\cdot\sin(\psi_g)}{\frac{\partial{z_p}}{\partial{x_D}}}
 $
 
@@ -74,8 +72,7 @@ $$Thr=D+m\cdot\left(\frac{dV_a}{dt}-g\cdot{\frac{V_{a,D}}{V_a}}+\frac{1}{V_a}\cd
 
 the saving was integrated as a vertical wind component in the final thrust equation above:
 $$Thr=D+m\cdot\left(\frac{dV_a}{dt}-g\cdot{\frac{V_{a,D}}{V_a}}+\frac{1}{V_a}\cdot\mathbf{\frac{dW}{dt}}\cdot\mathbf{V_a} \right)-m\cdot g\cdot{\frac{W^{saving}_{D}}{V_a}}$$
-with 
-$$W^{saving}_{D}=K_{saving}\cdot{V_a}\cdot{ \frac{D}{L}}$$
+with $W^{saving}_{D}=K_{saving}\cdot{V_a}\cdot{ \frac{D}{L}}$
 
 ### BEN0 model
 $$\Gamma_0=\frac{m_l\cdot{g}}{\rho\cdot{b_{v0}}\cdot{V_{a}}}$$
