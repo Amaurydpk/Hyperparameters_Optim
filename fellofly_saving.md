@@ -46,7 +46,7 @@ V_{g,N}=&V_{g,H}\cdot\cos(\psi_g)\\
 V_{g,E}=&V_{g,H}\cdot\sin(\psi_g)\\
 V_{g,D}=&v_0-V_{g,H}\cdot{a_0}\\
 \end{array}
-\right.
+\right
 $$
 with $v_0=\frac{\frac{dz_p}{dt}|_{Tgt}-\frac{\partial{z_p}}{\partial{t}}}{\frac{\partial{z_p}}{\partial{x_D}}}, a_0=\frac{\frac{\partial{z_p}}{\partial{x_N}}\cdot\cos(\psi_g)+\frac{\partial{z_p}}{\partial{x_E}}\cdot\sin(\psi_g)}{\frac{\partial{z_p}}{\partial{x_D}}}
 $
